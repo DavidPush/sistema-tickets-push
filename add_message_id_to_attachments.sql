@@ -1,0 +1,1 @@
+﻿ALTER TABLE attachments ADD COLUMN IF NOT EXISTS message_id INTEGER REFERENCES messages(id) ON DELETE SET NULL;

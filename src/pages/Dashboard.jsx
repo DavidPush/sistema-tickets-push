@@ -3,7 +3,7 @@ import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import { IC } from '../assets/icons';
 import { StatusBadge, PriorityBadge } from '../components/UI/Badges';
-import { timeAgo } from '../utils/helpers';
+import { timeAgo, fmtId } from '../utils/helpers';
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -17,6 +17,7 @@ import {
     Legend,
 } from 'chart.js';
 import { Bar, Pie } from 'react-chartjs-2';
+import * as XLSX from 'xlsx';
 
 ChartJS.register(
     CategoryScale,
@@ -57,6 +58,23 @@ export function Dashboard({ onNavigate }) {
         return s;
     }, [myTickets]);
 
+    const exportToExcel = () => {
+        const data = tickets.map(t => ({
+            ID: t.id,
+            Título: t.title,
+            Prioridad: t.priority,
+            Estado: t.status,
+            Creado: new Date(t.created_at).toLocaleString(),
+            Actualizado: new Date(t.updated_at).toLocaleString(),
+            Asignado: users.find(u => u.id === t.assigned_to)?.name || 'Sin asignar'
+        }));
+
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Tickets");
+        XLSX.writeFile(wb, `Reporte_Tickets_PushHR_${new Date().toISOString().split('T')[0]}.xlsx`);
+    };
+
     const recent = [...myTickets].sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at)).slice(0, 5);
 
     const statusData = {
@@ -93,8 +111,15 @@ export function Dashboard({ onNavigate }) {
                 <h2 style={{ fontSize: 24, fontWeight: 800, color: '#1e293b' }}>
                     {isAdmin ? 'Dashboard Global' : 'Resumen de Actividad'}
                 </h2>
-                <div style={{ fontSize: 13, color: '#64748b', fontWeight: 500 }}>
-                    {isAdmin ? 'Vista administrativa general' : 'Seguimiento de mis tickets'}
+                <div className="flex-center gap-2">
+                    {isAdmin && (
+                        <button className="btn btn-ghost btn-sm" onClick={exportToExcel} style={{ gap: 8 }}>
+                            {IC.download} Exportar Excel
+                        </button>
+                    )}
+                    <div style={{ fontSize: 13, color: '#64748b', fontWeight: 500 }}>
+                        {isAdmin ? 'Vista administrativa general' : 'Seguimiento de mis tickets'}
+                    </div>
                 </div>
             </div>
 
@@ -136,10 +161,17 @@ export function Dashboard({ onNavigate }) {
                                 <tr key={t.id} onClick={() => onNavigate('detail', t.id)}>
                                     <td>
                                         <div style={{ fontWeight: 600 }}>{t.title}</div>
-                                        <div style={{ fontSize: 12, color: '#999' }}>#{t.id}</div>
+                                        <div style={{ fontSize: 12, color: 'var(--purple)', fontWeight: 700 }}>{fmtId(t.id)}</div>
                                     </td>
                                     <td><StatusBadge status={t.status} /></td>
-                                    <td><PriorityBadge priority={t.priority} /></td>
+                                    <td>
+                                        <div className="flex-col">
+                                            <PriorityBadge priority={t.priority} />
+                                            {t.status !== 'closed' && (Date.now() - new Date(t.created_at) > 86400000) && (
+                                                <span className="sla-tag sla-overdue">¡Atrasado!</span>
+                                            )}
+                                        </div>
+                                    </td>
                                     <td style={{ fontSize: 12, color: '#999' }}>{timeAgo(t.updated_at)}</td>
                                 </tr>
                             ))}

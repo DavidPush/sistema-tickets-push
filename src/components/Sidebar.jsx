@@ -8,22 +8,29 @@ import logo from '../assets/logo.png';
 export function Sidebar({ page, setPage, profile, users }) {
     const { logout } = useAuth();
     const isAdmin = profile?.role === 'admin';
+    const isTech = profile?.role === 'technician';
     const isUser = profile?.role === 'user';
 
+    // Base items for everyone
     const navItems = [
         { id: 'dashboard', label: 'Dashboard', icon: IC.dashboard },
         { id: 'tickets', label: 'Tickets', icon: IC.ticket },
+        { id: 'help', label: 'Centro de Ayuda', icon: IC.help },
     ];
 
+    // Role specific additions
     if (isUser) {
         navItems.push({ id: 'create', label: 'Nuevo Ticket', icon: IC.plus });
     }
 
-    if (isAdmin) {
-        navItems.push(
-            { id: 'users', label: 'Usuarios', icon: IC.users },
-            { id: 'categories', label: 'Categorías', icon: IC.settings }
-        );
+    if (isAdmin || isTech) {
+        // Technicians and admins can see users (optionally) but let's stick to your current rules
+        if (isAdmin) {
+            navItems.push(
+                { id: 'users', label: 'Usuarios', icon: IC.users },
+                { id: 'categories', label: 'Categorías', icon: IC.settings }
+            );
+        }
     }
 
     return (

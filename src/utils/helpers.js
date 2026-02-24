@@ -2,6 +2,8 @@ import { AVATAR_BG } from './constants';
 
 export const genId = () => Date.now() + Math.floor(Math.random() * 9999);
 
+export const fmtId = id => `TK-${String(id).padStart(4, '0')}`;
+
 export const initials = n => (n || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 
 export const avatarBg = n => AVATAR_BG[(n || '').length % AVATAR_BG.length];

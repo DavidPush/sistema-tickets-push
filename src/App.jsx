@@ -16,6 +16,7 @@ import { TicketDetail } from './pages/TicketDetail';
 import { CreateTicket } from './pages/CreateTicket';
 import { Users } from './pages/Users';
 import { Categories } from './pages/Categories';
+import { KnowledgeBase } from './pages/KnowledgeBase';
 
 function AppContent() {
     const { session, loadingAuth, logout } = useAuth();
@@ -83,7 +84,8 @@ function AppContent() {
         create: { t: 'Nuevo Ticket', s: 'Crear solicitud' },
         detail: { t: `Ticket #${selTicket || ''}`, s: 'Detalle del ticket' },
         users: { t: 'Usuarios', s: 'Gestión de usuarios' },
-        categories: { t: 'Categorías', s: 'Configuración' }
+        categories: { t: 'Categorías', s: 'Configuración' },
+        help: { t: 'Centro de Ayuda', s: 'Base de conocimientos' }
     };
     const ti = titles[page] || titles.dashboard;
 
@@ -101,6 +103,7 @@ function AppContent() {
             case 'detail': return <TicketDetail id={selTicket} onNavigate={setPage} />;
             case 'users': return isAdmin ? <Users /> : <Dashboard onNavigate={setPage} />;
             case 'categories': return isAdmin ? <Categories /> : <Dashboard onNavigate={setPage} />;
+            case 'help': return <KnowledgeBase onNavigate={setPage} />;
             default: return <Dashboard onNavigate={setPage} />;
         }
     };

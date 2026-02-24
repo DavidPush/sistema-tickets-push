@@ -6,12 +6,13 @@ import { IC } from '../assets/icons';
 
 export function CreateTicket({ onNavigate }) {
     const { session } = useAuth();
-    const { cats, addTicket, addHistory } = useData();
+    const { cats, addTicket, addHistory, uploadFile, addAttachment } = useData();
     const toast = useToast();
 
     const [form, setForm] = useState({ title: '', description: '', categoryId: '', priority: 'medium' });
     const [errs, setErrs] = useState({});
     const [loading, setLoading] = useState(false);
+    const [file, setFile] = useState(null);
 
     const upd = (k, v) => setForm(p => ({ ...p, [k]: v }));
 
@@ -35,11 +36,17 @@ export function CreateTicket({ onNavigate }) {
                 updated_at: new Date().toISOString()
             });
 
-            await addHistory({
-                ticket_id: ticket.id,
-                user_id: session.user.id,
-                action: 'Ticket creado'
-            });
+            if (file) {
+                const { url, name, type, size } = await uploadFile(file);
+                await addAttachment({
+                    ticket_id: ticket.id,
+                    file_name: name,
+                    file_url: url,
+                    file_type: type,
+                    file_size: size,
+                    created_by: session.user.id
+                });
+            }
 
             toast('Ticket creado exitosamente');
             onNavigate('tickets');
@@ -120,6 +127,27 @@ export function CreateTicket({ onNavigate }) {
                             onChange={e => upd('description', e.target.value)}
                         />
                         {errs.description && <div style={{ color: '#ef4444', fontSize: 12, marginTop: 4 }}>{errs.description}</div>}
+                    </div>
+
+                    <div className="form-group">
+                        <label className="form-label">Adjuntar archivo (opcional)</label>
+                        <div className="flex gap-4 align-center">
+                            <input
+                                type="file"
+                                id="file-upload"
+                                style={{ display: 'none' }}
+                                onChange={e => setFile(e.target.files[0])}
+                            />
+                            <label htmlFor="file-upload" className="btn btn-secondary" style={{ gap: 8, cursor: 'pointer' }}>
+                                {IC.clip} Seleccionar Archivo
+                            </label>
+                            {file && (
+                                <div className="flex-center gap-2 fade-in" style={{ fontSize: 13, background: '#f1f5f9', padding: '6px 12px', borderRadius: 8 }}>
+                                    <span className="truncate" style={{ maxWidth: 150 }}>{file.name}</span>
+                                    <button type="button" className="btn-icon" onClick={() => setFile(null)} style={{ color: '#ef4444' }}>{IC.x}</button>
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     <div className="flex-between mt-6">

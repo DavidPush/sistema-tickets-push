@@ -3,7 +3,7 @@ import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import { IC } from '../assets/icons';
 import { StatusBadge, PriorityBadge } from '../components/UI/Badges';
-import { fmtShort } from '../utils/helpers';
+import { fmtShort, fmtId } from '../utils/helpers';
 
 export function Tickets({ onSelect }) {
     const { tickets, cats, users } = useData();
@@ -110,11 +110,18 @@ export function Tickets({ onSelect }) {
                                     const c = cats.find(x => x.id === t.category_id);
                                     return (
                                         <tr key={t.id} onClick={() => onSelect(t.id)}>
-                                            <td style={{ fontWeight: 700, color: '#999' }}>#{t.id}</td>
+                                            <td style={{ fontWeight: 700, color: 'var(--purple)', fontSize: 13 }}>{fmtId(t.id)}</td>
                                             <td style={{ fontWeight: 600 }}>{t.title}</td>
                                             <td><span style={{ fontSize: 16 }}>{c?.icon}</span> {c?.name}</td>
                                             <td><StatusBadge status={t.status} /></td>
-                                            <td><PriorityBadge priority={t.priority} /></td>
+                                            <td>
+                                                <div className="flex-col">
+                                                    <PriorityBadge priority={t.priority} />
+                                                    {t.status !== 'closed' && (Date.now() - new Date(t.created_at) > 86400000) && (
+                                                        <span className="sla-tag sla-overdue" style={{ fontSize: 10, marginTop: 2 }}>¡Atrasado!</span>
+                                                    )}
+                                                </div>
+                                            </td>
                                             <td style={{ color: '#999' }}>{fmtShort(t.created_at)}</td>
                                         </tr>
                                     );
