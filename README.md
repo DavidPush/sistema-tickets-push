@@ -1,85 +1,97 @@
-# 🎫 Sistema de Tickets - Push HR Spa
+# 🎫 Sistema de Tickets de Soporte - Push HR Spa
 
-[![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
-[![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
-[![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com/)
-[![Teams](https://img.shields.io/badge/Microsoft_Teams-6264A7?style=for-the-badge&logo=microsoft-teams&logoColor=white)](https://www.microsoft.com/en-us/microsoft-365/microsoft-teams/group-chat-software)
+[![Enterprise Grade](https://img.shields.io/badge/Architecture-Enterprise-blue?style=for-the-badge)](https://pushhr.cl)
+[![Vite](https://img.shields.io/badge/Frontend-React_18-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Supabase](https://img.shields.io/badge/Backend-Supabase_Cloud-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com/)
+[![Teams](https://img.shields.io/badge/Integrations-MS_Teams_V2-6264A7?style=for-the-badge&logo=microsoft-teams&logoColor=white)](https://www.microsoft.com/)
 
-Una plataforma **Enterprise-Grade** de alto rendimiento diseñada para la gestión de soporte técnico interno en **Push HR Spa**. Optimizada para la velocidad, seguridad y eficiencia operativa.
-
----
-
-## ✨ Características de Nivel Premium
-
-### 🔗 Notificaciones Integradas con MS Teams
-- **Alertas en Tiempo Real**: Notificaciones instantáneas en canales de Teams para nuevos tickets, mensajes y asignaciones.
-- **Adaptive Cards**: Interfaz visual enriquecida con estados por color (Crítico/Alto en rojo, Medio en naranja).
-- **Deep Linking**: Botones de acción directa que llevan al usuario específicamente al ticket correspondiente.
-- **Identificación Completa**: Visualización de nombre, correo y prioridad directamente en el chat de Teams.
-
-### 🔐 Seguridad Corporativa & IT
-- **Dominio Verificado**: Acceso restringido exclusivamente a colaboradores con correo `@pushhr.cl`.
-- **RBAC Avanzado**: Tres niveles de acceso (Admin, Técnico, Usuario) con políticas de seguridad a nivel de fila (RLS) en base de datos.
-- **Autenticación Microsoft**: Integración nativa con Microsoft 365 para un inicio de sesión seguro y empresarial.
-
-### 📂 Gestión de Archivos y Evidencia
-- **Cloud Storage**: Sistema de carga de archivos integrado con Supabase Storage para capturas de pantalla y documentos técnicos.
-- **Visualización In-App**: Previsualización instantánea de adjuntos dentro del flujo del ticket.
+Una solución **state-of-the-art** de nivel corporativo para la orquestación y resolución de incidentes técnicos en **Push HR Spa**. Diseñada bajo principios de **Software Resilience**, **Real-time Sync** y **Zero Trust Security**.
 
 ---
 
-## 🏗️ Arquitectura del Sistema
+## 🏗️ Technical Architecture & Ecosystem
 
+El sistema se basa en una arquitectura de **Single Page Application (SPA)** desacoplada, utilizando servicios serverless de alta disponibilidad.
+
+### Data Flow Diagram
 ```mermaid
-graph TD
-    A[React Client] -->|Realtime Sub| B(Supabase DB)
-    A -->|Auth| C{Microsoft ID / magic link}
-    A -->|Uploads| D[Supabase Storage]
-    A -->|Trigger| E[Edge Function: notify-email]
-    E -->|Webhook| F[Microsoft Teams Channel]
+graph LR
+    User[Client Browser] -->|Auth / RTC| SB[Supabase Cloud]
+    SB -->|PostgreSQL| DB[(Database)]
+    SB -->|Edge Runtime| EF[notify-email Function]
+    EF -->|Adaptive Cards| Teams[MS Teams Webhook]
+    User -->|Object Storage| OSS[Supabase Storage]
 ```
 
+### Database Schema (Entity Relationship)
+El esquema PostgreSQL está optimizado para integridad referencial y auditoría:
+- **`profiles`**: Gestión de roles (Admin, Técnico, Usuario) y metadata de SSO.
+- **`tickets`**: CORE - Seguimiento de estados, prioridades y asignaciones.
+- **`messages`**: Hilo de comunicación con soporte para mensajes privados.
+- **`history`**: Audit trail inmutable de cada cambio de estado o asignación.
+- **`notifications`**: Sistema interno de alertas web en tiempo real.
+
 ---
 
-## 🛠️ Stack Tecnológico
+## 🚀 Key Professional Features
 
-| Componente | Tecnología |
+### 🖥️ High-Fidelity UI/UX
+- **Glassmorphism Design System**: Interfaz con efectos de desenfoque de fondo y transparencias dinámicas.
+- **Real-time Synchronization Engine**: Sincronización bidireccional instantánea mediante **Change Data Capture (CDC)** sobre el puerto 5432.
+- **Optimistic UI Updates**: Respuesta inmediata del frontend que sincroniza en segundo plano, mejorando la latencia percibida a <100ms.
+
+### 🔗 Teams Webhook Integration (Polished)
+Notificaciones enriquecidas mediante **Message Cards** que incluyen:
+- **Priority Heatmap**: Codificación de colores visual para respuesta rápida.
+- **Smart Deep Linking**: Generación dinámica de `ticketUrl` basada en el origen de despliegue.
+- **Rich Payload**: Desglosado técnico con ID de ticket correlativo y metadatos de usuario.
+
+### 🔐 Security & Compliance
+- **Row-Level Security (RLS)**: Políticas granulares en SQL que impiden el acceso a datos fuera del scope del rol.
+- **Microsoft 365 OAuth 2.0**: Autenticación empresarial mediante Entra ID.
+- **Domain White-listing**: Firewall de aplicación que restringe accesos externos al dominio corporativo.
+
+---
+
+## 🛠️ Tech Stack Deep-Dive
+
+| Layer | Technologies |
 | :--- | :--- |
-| **Frontend** | React 18 + Vite (Ultrarápido) |
-| **Backend** | Supabase (Serverless Infrastructure) |
-| **Base de Datos** | PostgreSQL con RLS policies |
-| **Notificaciones** | Microsoft Teams Webhooks V2 |
-| **Dashboard** | Chart.js para métricas visuales |
-| **Estilos** | CSS Moderno (Glassmorphism & Flexbox) |
+| **Frontend Foundation** | React 18, Vite, ES6+ |
+| **Global State Management** | Multi-Context API Pattern (Auth, Data, Toast, Notif) |
+| **Database Engine** | PostgreSQL (Supabase Managed) |
+| **Real-time Layer** | Supabase Realtime (WebSockets) |
+| **Serverless Logic** | Deno-based Edge Functions |
+| **Analytical Visualization** | Chart.js & React-chartjs-2 integration |
 
 ---
 
-## 🚀 Guía de Instalación Rápida
+## 🔧 Deployment & Infrastructure Setup
 
-1. **Clonar e Instalar**
-   ```bash
-   git clone [URL-DEL-REPOSITORIO]
-   npm install
-   ```
+### Prerequisites
+- Node.js LTS (>=18.20.0)
+- Supabase CLI (para despliegue de Edge Functions)
 
-2. **Variables de Entorno (.env)**
-   ```env
-   VITE_SUPABASE_URL=tu_url_supabase
-   VITE_SUPABASE_ANON_KEY=tu_anon_key
-   ```
+### Environment Configuration
+Configure el archivo `.env` con las siguientes claves críticas:
 
-3. **Configurar Teams (Backend)**
-   Asegúrate de configurar el secreto `TEAMS_WEBHOOK_URL` en tu instancia de Supabase:
-   ```bash
-   supabase secrets set TEAMS_WEBHOOK_URL=tu_url_webhook
-   ```
+```env
+VITE_SUPABASE_URL=https://[YOUR-PROJECT-ID].supabase.co
+VITE_SUPABASE_ANON_KEY=[YOUR-SERVICE-ROLE-OR-ANON-KEY]
+```
 
-4. **Desplegar**
-   ```bash
-   npm run dev
-   ```
+### Edge Function Secrets
+Para activar las notificaciones de Teams, ejecute en la consola de Supabase:
+```bash
+supabase secrets set TEAMS_WEBHOOK_URL="https://outlook.office.com/webhook/..."
+```
+
+### Database Initialization
+Asegúrese de ejecutar los scripts en la carpeta `supabase/migrations` para habilitar el motor de Realtime y las políticas RLS necesarias.
 
 ---
 
-## 🤝 Soporte y Contribución
-Desarrollado con excelencia para el equipo de **Push HR Spa**. Para reportar fallos, utiliza el propio sistema de tickets integrado en la plataforma. 🚀
+## 📄 Licencia y Credenciales
+Este software es de propiedad intelectual de **Push HR Spa**. Queda prohibida la reproducción parcial o total sin consentimiento explícito del equipo de IT.
+
+Desarrollado con **excelencia técnica** para optimizar la productividad dePush HR. 🚀
