@@ -6,13 +6,16 @@ import { ROLE_LABELS } from '../utils/constants';
 
 export function Sidebar({ page, setPage, profile, users }) {
     const { logout } = useAuth();
-    const isAdmin = profile?.role === 'admin';
+    const isUser = profile?.role === 'user';
 
     const navItems = [
         { id: 'dashboard', label: 'Dashboard', icon: IC.dashboard },
         { id: 'tickets', label: 'Tickets', icon: IC.ticket },
-        { id: 'create', label: 'Nuevo Ticket', icon: IC.plus },
     ];
+
+    if (isUser) {
+        navItems.push({ id: 'create', label: 'Nuevo Ticket', icon: IC.plus });
+    }
 
     if (isAdmin) {
         navItems.push(

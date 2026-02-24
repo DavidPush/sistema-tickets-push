@@ -35,12 +35,19 @@ export function Dashboard({ onNavigate }) {
     const { session } = useAuth();
 
     const profile = users.find(u => u.id === session?.user?.id);
-    const isAdminOrTech = profile?.role === 'admin' || profile?.role === 'technician';
+    const isAdmin = profile?.role === 'admin';
+    const isTech = profile?.role === 'technician';
 
+    // Business Logic: 
+    // - Admin: Global view of all tickets.
+    // - Tech: Operational view of assigned/all tickets (depending on policy, here all but can be limited).
+    // - User: Only their own tickets.
     const myTickets = useMemo(() => {
-        return tickets.filter(t => isAdminOrTech || t.creator_id === session?.user?.id);
-    }, [tickets, isAdminOrTech, session?.user?.id]);
+        if (isAdmin || isTech) return tickets;
+        return tickets.filter(t => t.creator_id === session?.user?.id);
+    }, [tickets, isAdmin, isTech, session?.user?.id]);
 
+    // Admin sees Global Stats, others see context-aware stats
     const stats = useMemo(() => {
         const s = { open: 0, in_progress: 0, waiting: 0, closed: 0, critical: 0 };
         myTickets.forEach(t => {
@@ -82,6 +89,15 @@ export function Dashboard({ onNavigate }) {
 
     return (
         <div className="fade-in">
+            <div className="flex-between mb-6">
+                <h2 style={{ fontSize: 24, fontWeight: 800, color: '#1e293b' }}>
+                    {isAdmin ? 'Dashboard Global' : 'Resumen de Actividad'}
+                </h2>
+                <div style={{ fontSize: 13, color: '#64748b', fontWeight: 500 }}>
+                    {isAdmin ? 'Vista administrativa general' : 'Seguimiento de mis tickets'}
+                </div>
+            </div>
+
             <div className="grid-5 mb-6">
                 <StatCard label="Abiertos" val={stats.open} icon={<div className="stat-icon" style={{ background: '#eff6ff', color: '#3b82f6' }}>{IC.inbox}</div>} />
                 <StatCard label="En Progreso" val={stats.in_progress} icon={<div className="stat-icon" style={{ background: '#fffbeb', color: '#f59e0b' }}>{IC.clock}</div>} />

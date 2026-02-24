@@ -79,6 +79,7 @@ function AppContent() {
     const ti = titles[page] || titles.dashboard;
 
     const isAdmin = profile?.role === 'admin';
+    const isUser = profile?.role === 'user';
 
     const renderPage = () => {
         switch (page) {
@@ -87,7 +88,7 @@ function AppContent() {
                 setPage(p);
             }} />;
             case 'tickets': return <Tickets onSelect={id => { setSelTicket(id); setPage('detail'); }} />;
-            case 'create': return <CreateTicket onNavigate={setPage} />;
+            case 'create': return isUser ? <CreateTicket onNavigate={setPage} /> : <Dashboard onNavigate={setPage} />;
             case 'detail': return <TicketDetail id={selTicket} onNavigate={setPage} />;
             case 'users': return isAdmin ? <Users /> : <Dashboard onNavigate={setPage} />;
             case 'categories': return isAdmin ? <Categories /> : <Dashboard onNavigate={setPage} />;
