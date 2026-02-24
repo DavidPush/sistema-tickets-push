@@ -3,6 +3,7 @@ import { IC } from '../assets/icons';
 import { Avatar } from './UI/Avatar';
 import { useAuth } from '../context/AuthContext';
 import { ROLE_LABELS } from '../utils/constants';
+import logo from '../assets/logo.png';
 
 export function Sidebar({ page, setPage, profile, users }) {
     const { logout } = useAuth();
@@ -27,12 +28,8 @@ export function Sidebar({ page, setPage, profile, users }) {
 
     return (
         <aside className="sidebar">
-            <div className="sidebar-logo">
-                <div className="sidebar-logo-icon">P</div>
-                <div>
-                    <div className="sidebar-logo-text">Push <span>HR</span></div>
-                    <div className="sidebar-logo-sub">Help Desk</div>
-                </div>
+            <div className="sidebar-logo" style={{ padding: '20px 24px' }}>
+                <img src={logo} alt="Push HR" style={{ height: 45, width: 'auto', objectFit: 'contain' }} />
             </div>
             <div className="sidebar-divider" />
             <nav className="sidebar-nav">

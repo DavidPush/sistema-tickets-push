@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../services/supabase';
 import { IC } from '../assets/icons';
+import logo from '../assets/logo.png';
 
 export function LoginPage() {
     const [email, setEmail] = useState('');
@@ -96,11 +97,8 @@ export function LoginPage() {
             <div className="login-blob2" />
             <div className="login-card fade-in">
                 <div className="login-brand">
-                    <div className="login-brand-row">
-                        <div className="sidebar-logo-icon">P</div>
-                        <h1 style={{ color: '#1e1e2d', margin: 0 }}>Push <span>HR</span></h1>
-                    </div>
-                    <p style={{ color: '#666', marginTop: 4 }}>Help Desk System</p>
+                    <img src={logo} alt="Push HR" style={{ height: 64, width: 'auto', objectFit: 'contain' }} />
+                    <p style={{ color: '#64748b', marginTop: 8, fontSize: 13, fontWeight: 500 }}>Help Desk System</p>
                 </div>
 
                 <h2 className="login-title">{isSignup ? 'Crea tu cuenta' : '¡Bienvenido!'}</h2>
