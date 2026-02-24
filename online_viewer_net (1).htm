@@ -1,0 +1,2726 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Push HR — Help Desk</title>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f5f6fa;
+      color: #1e1e2d;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    :root {
+      --purple: #5A3FA3;
+      --purple-dark: #452F82;
+      --purple-light: #7B64C0;
+      --purple-50: #F0ECFA;
+      --turquoise: #4BB7B5;
+      --turquoise-dark: #3A9795;
+      --turquoise-light: #6CCAC8;
+      --turquoise-50: #E8F7F7;
+      --yellow: #E7B547;
+      --yellow-dark: #C99A30;
+      --yellow-50: #FDF8EB;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #999;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideRight {
+      from {
+        opacity: 0;
+        transform: translateX(-16px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes scaleIn {
+      from {
+        opacity: 0;
+        transform: scale(0.94);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(24px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes shake {
+
+      0%,
+      100% {
+        transform: translateX(0);
+      }
+
+      25% {
+        transform: translateX(-5px);
+      }
+
+      75% {
+        transform: translateX(5px);
+      }
+    }
+
+    @keyframes pulse2 {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.35;
+      }
+    }
+
+    .fade-in {
+      animation: fadeIn 0.35s ease-out;
+    }
+
+    .slide-right {
+      animation: slideRight 0.3s ease-out;
+    }
+
+    .scale-in {
+      animation: scaleIn 0.2s ease-out;
+    }
+
+    .slide-up {
+      animation: slideUp 0.3s ease-out;
+    }
+
+    .shake {
+      animation: shake 0.35s ease;
+    }
+
+    .pulse2 {
+      animation: pulse2 2s infinite;
+    }
+
+    /* Layout */
+    .app-layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 260px;
+      min-height: 100vh;
+      position: sticky;
+      top: 0;
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(180deg, var(--purple) 0%, var(--purple-dark) 100%);
+    }
+
+    .main-area {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Sidebar */
+    .sidebar-logo {
+      padding: 20px 20px 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .sidebar-logo-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--turquoise), var(--turquoise-dark));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 900;
+      font-size: 18px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .sidebar-logo-text {
+      font-size: 22px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .sidebar-logo-text span {
+      color: var(--turquoise-light);
+    }
+
+    .sidebar-logo-sub {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: rgba(255, 255, 255, 0.35);
+      font-weight: 700;
+    }
+
+    .sidebar-divider {
+      height: 1px;
+      background: rgba(255, 255, 255, 0.1);
+      margin: 4px 16px;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 8px 12px;
+      overflow-y: auto;
+    }
+
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      color: rgba(255, 255, 255, 0.55);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      transition: all 0.15s;
+      margin-bottom: 2px;
+    }
+
+    .sidebar-link:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .sidebar-link.active {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.15);
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .sidebar-badge {
+      background: var(--turquoise);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 20px;
+      margin-left: auto;
+    }
+
+    .sidebar-alert {
+      margin: 16px 8px 0;
+      padding: 12px;
+      background: rgba(239, 68, 68, 0.15);
+      border-radius: 12px;
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #fca5a5;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .sidebar-footer {
+      padding: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      margin-top: auto;
+    }
+
+    .sidebar-user {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px;
+      margin-bottom: 8px;
+    }
+
+    .sidebar-user-name {
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .sidebar-user-role {
+      color: rgba(255, 255, 255, 0.4);
+      font-size: 11px;
+    }
+
+    .sidebar-logout {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      color: rgba(255, 255, 255, 0.45);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      transition: all 0.15s;
+    }
+
+    .sidebar-logout:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    /* Topbar */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid #eee;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      height: 64px;
+    }
+
+    .topbar-title h1 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1e1e2d;
+      line-height: 1.2;
+    }
+
+    .topbar-title p {
+      font-size: 12px;
+      color: #999;
+      font-weight: 500;
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .topbar-bell {
+      position: relative;
+      padding: 10px;
+      border-radius: 12px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      color: #888;
+      transition: background 0.15s;
+    }
+
+    .topbar-bell:hover {
+      background: #f5f5f5;
+    }
+
+    .topbar-bell-dot {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 8px;
+      height: 8px;
+      background: #ef4444;
+      border-radius: 50%;
+    }
+
+    .topbar-profile {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 12px 6px 6px;
+      border-radius: 12px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .topbar-profile:hover {
+      background: #f5f5f5;
+    }
+
+    .topbar-profile-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    /* Avatar */
+    .avatar {
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .avatar-sm {
+      width: 32px;
+      height: 32px;
+      font-size: 11px;
+    }
+
+    .avatar-md {
+      width: 38px;
+      height: 38px;
+      font-size: 13px;
+    }
+
+    .avatar-lg {
+      width: 48px;
+      height: 48px;
+      font-size: 15px;
+    }
+
+    .avatar-xl {
+      width: 60px;
+      height: 60px;
+      font-size: 20px;
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .badge-open {
+      background: #eff6ff;
+      color: #2563eb;
+    }
+
+    .badge-open .badge-dot {
+      background: #3b82f6;
+    }
+
+    .badge-in_progress {
+      background: #fffbeb;
+      color: #d97706;
+    }
+
+    .badge-in_progress .badge-dot {
+      background: #f59e0b;
+    }
+
+    .badge-waiting {
+      background: var(--purple-50);
+      color: var(--purple);
+    }
+
+    .badge-waiting .badge-dot {
+      background: var(--purple);
+    }
+
+    .badge-closed {
+      background: #ecfdf5;
+      color: #059669;
+    }
+
+    .badge-closed .badge-dot {
+      background: #10b981;
+    }
+
+    .badge-low {
+      background: #f1f5f9;
+      color: #475569;
+    }
+
+    .badge-low .badge-dot {
+      background: #94a3b8;
+    }
+
+    .badge-medium {
+      background: #eff6ff;
+      color: #2563eb;
+    }
+
+    .badge-medium .badge-dot {
+      background: #3b82f6;
+    }
+
+    .badge-high {
+      background: #fff7ed;
+      color: #ea580c;
+    }
+
+    .badge-high .badge-dot {
+      background: #f97316;
+    }
+
+    .badge-critical {
+      background: #fef2f2;
+      color: #dc2626;
+    }
+
+    .badge-critical .badge-dot {
+      background: #ef4444;
+    }
+
+    .badge-admin {
+      background: var(--purple-50);
+      color: var(--purple);
+    }
+
+    .badge-technician {
+      background: var(--turquoise-50);
+      color: var(--turquoise-dark);
+    }
+
+    .badge-user {
+      background: #f1f5f9;
+      color: #475569;
+    }
+
+    /* Cards */
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      border: 1px solid #eee;
+    }
+
+    .card:hover {
+      border-color: #ddd;
+    }
+
+    .card-pad {
+      padding: 24px;
+    }
+
+    /* Stats */
+    .stat-card {
+      background: #fff;
+      border-radius: 16px;
+      border: 1px solid #eee;
+      padding: 24px;
+      transition: all 0.2s;
+      cursor: default;
+    }
+
+    .stat-card:hover {
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+      transform: translateY(-2px);
+    }
+
+    .stat-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 14px;
+    }
+
+    .stat-val {
+      font-size: 32px;
+      font-weight: 800;
+      color: #1e1e2d;
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: #888;
+      font-weight: 500;
+      margin-top: 4px;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: var(--turquoise);
+      color: #fff;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--turquoise-dark);
+    }
+
+    .btn-secondary {
+      background: #fff;
+      color: #555;
+      border: 1px solid #ddd;
+    }
+
+    .btn-secondary:hover {
+      background: #f8f8f8;
+    }
+
+    .btn-danger {
+      background: #ef4444;
+      color: #fff;
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+    }
+
+    .btn-purple {
+      background: var(--purple);
+      color: #fff;
+    }
+
+    .btn-purple:hover:not(:disabled) {
+      background: var(--purple-dark);
+    }
+
+    .btn-ghost {
+      background: none;
+      color: #888;
+      padding: 8px 12px;
+    }
+
+    .btn-ghost:hover {
+      background: #f5f5f5;
+      color: #333;
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 12px;
+      border-radius: 10px;
+    }
+
+    .btn-lg {
+      padding: 14px 24px;
+      font-size: 16px;
+    }
+
+    /* Inputs */
+    .form-group {
+      margin-bottom: 0;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #444;
+      margin-bottom: 6px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      font-size: 14px;
+      color: #1e1e2d;
+      background: #fff;
+      font-family: inherit;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--turquoise);
+      box-shadow: 0 0 0 3px rgba(75, 183, 181, 0.15);
+    }
+
+    .form-input::placeholder {
+      color: #bbb;
+    }
+
+    .form-input-icon {
+      padding-left: 40px;
+    }
+
+    .input-icon-wrap {
+      position: relative;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #aaa;
+      pointer-events: none;
+    }
+
+    .form-select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 36px;
+    }
+
+    textarea.form-input {
+      resize: none;
+      min-height: 100px;
+      line-height: 1.6;
+    }
+
+    /* Table */
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th {
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 12px 20px;
+      background: #fafafa;
+    }
+
+    td {
+      padding: 14px 20px;
+      border-top: 1px solid #f3f3f3;
+      font-size: 14px;
+      color: #444;
+    }
+
+    tr:hover td {
+      background: #fafcff;
+    }
+
+    tr {
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+
+    /* Grid helpers */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    .grid-23 {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 24px;
+    }
+
+    /* Chat */
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      height: 440px;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .chat-bubble {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .chat-bubble-right {
+      flex-direction: row-reverse;
+    }
+
+    .chat-bubble-right .chat-meta {
+      text-align: right;
+      justify-content: flex-end;
+    }
+
+    .chat-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .chat-meta-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: #555;
+    }
+
+    .chat-meta-time {
+      font-size: 10px;
+      color: #bbb;
+    }
+
+    .chat-text {
+      padding: 12px 16px;
+      border-radius: 16px;
+      font-size: 14px;
+      line-height: 1.5;
+      max-width: 75%;
+      word-wrap: break-word;
+    }
+
+    .chat-text-left {
+      background: #f3f4f6;
+      color: #333;
+      border-bottom-left-radius: 4px;
+    }
+
+    .chat-text-right {
+      background: var(--turquoise);
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+
+    .chat-input-area {
+      padding: 16px;
+      border-top: 1px solid #eee;
+      background: #fafafa;
+      display: flex;
+      gap: 10px;
+    }
+
+    .chat-input-area .form-input {
+      border-radius: 12px;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid #eee;
+    }
+
+    .tab-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #999;
+      border: none;
+      background: none;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+
+    .tab-btn:hover {
+      color: #555;
+    }
+
+    .tab-btn.active {
+      color: var(--turquoise);
+      border-bottom-color: var(--turquoise);
+    }
+
+    .tab-badge {
+      background: #eee;
+      color: #888;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 20px;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-bg {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-card {
+      position: relative;
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.15);
+      width: 100%;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-sm {
+      max-width: 440px;
+    }
+
+    .modal-md {
+      max-width: 540px;
+    }
+
+    .modal-lg {
+      max-width: 680px;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .modal-header h3 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1e1e2d;
+    }
+
+    .modal-close {
+      padding: 6px;
+      border-radius: 8px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      color: #999;
+      transition: all 0.15s;
+    }
+
+    .modal-close:hover {
+      background: #f3f3f3;
+      color: #555;
+    }
+
+    .modal-body {
+      padding: 24px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    /* Toast */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    .toast {
+      pointer-events: auto;
+      padding: 12px 20px;
+      border-radius: 14px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    .toast-success {
+      background: #10b981;
+    }
+
+    .toast-error {
+      background: #ef4444;
+    }
+
+    /* Login */
+    .login-bg {
+      min-height: 100vh;
+      background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 50%, #3a2878 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .login-blob1 {
+      position: absolute;
+      top: -150px;
+      right: -150px;
+      width: 400px;
+      height: 400px;
+      background: rgba(75, 183, 181, 0.08);
+      border-radius: 50%;
+      filter: blur(60px);
+    }
+
+    .login-blob2 {
+      position: absolute;
+      bottom: -150px;
+      left: -150px;
+      width: 400px;
+      height: 400px;
+      background: rgba(231, 181, 71, 0.08);
+      border-radius: 50%;
+      filter: blur(60px);
+    }
+
+    .login-card {
+      width: 100%;
+      max-width: 420px;
+      background: rgba(255, 255, 255, 0.97);
+      border-radius: 24px;
+      box-shadow: 0 32px 64px rgba(0, 0, 0, 0.2);
+      padding: 36px;
+      position: relative;
+    }
+
+    .login-brand {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .login-brand-row {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 6px;
+    }
+
+    .login-brand h1 {
+      font-size: 30px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .login-brand h1 span {
+      color: var(--turquoise-light);
+    }
+
+    .login-brand p {
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .login-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1e1e2d;
+      margin-bottom: 4px;
+    }
+
+    .login-sub {
+      font-size: 14px;
+      color: #999;
+      margin-bottom: 24px;
+    }
+
+    .login-error {
+      padding: 12px 16px;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 12px;
+      color: #dc2626;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .login-demos {
+      border-top: 1px solid #eee;
+      margin-top: 24px;
+      padding-top: 20px;
+    }
+
+    .login-demos-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #bbb;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .login-demo-btn {
+      width: 100%;
+      text-align: left;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: background 0.15s;
+    }
+
+    .login-demo-btn:hover {
+      background: #f5f5f5;
+    }
+
+    .login-demo-role {
+      font-size: 12px;
+      font-weight: 700;
+      color: #555;
+    }
+
+    .login-demo-email {
+      font-size: 11px;
+      color: #bbb;
+    }
+
+    /* Empty */
+    .empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 64px 16px;
+      text-align: center;
+    }
+
+    .empty-icon {
+      width: 64px;
+      height: 64px;
+      background: #f3f4f6;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+      color: #bbb;
+    }
+
+    .empty h3 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 4px;
+    }
+
+    .empty p {
+      font-size: 14px;
+      color: #999;
+      margin-bottom: 16px;
+      max-width: 360px;
+    }
+
+    /* History item */
+    .hist-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 0;
+    }
+
+    .hist-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--purple);
+      border-radius: 50%;
+      margin-top: 6px;
+      flex-shrink: 0;
+    }
+
+    .hist-text {
+      font-size: 14px;
+      color: #444;
+    }
+
+    .hist-text strong {
+      font-weight: 600;
+      color: #333;
+    }
+
+    .hist-time {
+      font-size: 12px;
+      color: #bbb;
+      margin-top: 2px;
+    }
+
+    /* Profile dropdown */
+    .profile-dropdown {
+      position: absolute;
+      right: 0;
+      top: 100%;
+      margin-top: 8px;
+      width: 260px;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.12);
+      border: 1px solid #eee;
+      padding: 16px;
+      z-index: 40;
+    }
+
+    /* Category card */
+    .cat-card {
+      background: #fff;
+      border-radius: 16px;
+      border: 1px solid #eee;
+      padding: 20px;
+      transition: all 0.2s;
+    }
+
+    .cat-card:hover {
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    }
+
+    /* Back btn */
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      color: #999;
+      font-weight: 500;
+      background: none;
+      border: none;
+      cursor: pointer;
+      margin-bottom: 16px;
+      padding: 4px 0;
+      transition: color 0.15s;
+    }
+
+    .back-btn:hover {
+      color: var(--purple);
+    }
+
+    /* Spinner */
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Filter bar */
+    .filter-bar {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    }
+
+    .filter-bar>* {
+      flex: 1;
+      min-width: 140px;
+    }
+
+    .filter-bar>*:first-child {
+      flex: 2;
+      min-width: 200px;
+    }
+
+    /* Page content */
+    .page-content {
+      padding: 24px;
+    }
+
+    /* Mobile sidebar overlay */
+    .mobile-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+    }
+
+    .mobile-overlay-bg {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+    }
+
+    .mobile-sidebar {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 280px;
+    }
+
+    .mobile-menu-btn {
+      display: none;
+      padding: 8px;
+      border-radius: 10px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      color: #666;
+    }
+
+    .mobile-menu-btn:hover {
+      background: #f3f3f3;
+    }
+
+    /* Detail grid */
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 24px;
+    }
+
+    .detail-sidebar-section {
+      background: #fff;
+      border-radius: 16px;
+      border: 1px solid #eee;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .detail-sidebar-section h4 {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1e1e2d;
+      margin-bottom: 16px;
+    }
+
+    .detail-info {
+      margin-bottom: 16px;
+    }
+
+    .detail-info-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #aaa;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .detail-info-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Flex helpers */
+    .flex-between {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .flex-center {
+      display: flex;
+      align-items: center;
+    }
+
+    .gap-2 {
+      gap: 8px;
+    }
+
+    .gap-3 {
+      gap: 12px;
+    }
+
+    .gap-4 {
+      gap: 16px;
+    }
+
+    .mb-2 {
+      margin-bottom: 8px;
+    }
+
+    .mb-3 {
+      margin-bottom: 12px;
+    }
+
+    .mb-4 {
+      margin-bottom: 16px;
+    }
+
+    .mb-5 {
+      margin-bottom: 20px;
+    }
+
+    .mb-6 {
+      margin-bottom: 24px;
+    }
+
+    .mt-2 {
+      margin-top: 8px;
+    }
+
+    .mt-4 {
+      margin-top: 16px;
+    }
+
+    .space-y-4>*+* {
+      margin-top: 16px;
+    }
+
+    .space-y-3>*+* {
+      margin-top: 12px;
+    }
+
+    .text-center {
+      text-align: center;
+    }
+
+    .truncate {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .w-full {
+      width: 100%;
+    }
+
+    .italic {
+      font-style: italic;
+    }
+
+    @media (max-width: 1024px) {
+      .detail-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .grid-23 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        display: none;
+      }
+
+      .mobile-menu-btn {
+        display: block;
+      }
+
+      .topbar {
+        padding: 0 16px;
+      }
+
+      .page-content {
+        padding: 16px;
+      }
+
+      .filter-bar {
+        flex-direction: column;
+      }
+
+      .filter-bar>* {
+        min-width: 100%;
+      }
+
+      .hide-mobile {
+        display: none !important;
+      }
+
+      .topbar-profile-name {
+        display: none;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .grid-3 {
+        grid-template-columns: 1fr;
+      }
+
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useRef, createContext, useContext, useCallback, useMemo } = React;
+
+    /* ═══════ SUPABASE SETUP ═══════ */
+    const SUPABASE_URL = 'https://glzhkzmbcnizaamqtdin.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdsemhrem1iY25pemFhbXF0ZGluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4Njc2NzMsImV4cCI6MjA4NzQ0MzY3M30.6vdRJ4F_MIND2Bo2R6geKhlEuQZg90ciS2ia-5A2e34';
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    /* ═══════ CONSTANTS ═══════ */
+    const PRIORITIES = { low: { label: 'Baja', cls: 'badge-low' }, medium: { label: 'Media', cls: 'badge-medium' }, high: { label: 'Alta', cls: 'badge-high' }, critical: { label: 'Crítica', cls: 'badge-critical' } };
+    const STATUSES = { open: { label: 'Abierto', cls: 'badge-open' }, in_progress: { label: 'En Progreso', cls: 'badge-in_progress' }, waiting: { label: 'Esperando', cls: 'badge-waiting' }, closed: { label: 'Cerrado', cls: 'badge-closed' } };
+    const ROLE_LABELS = { admin: 'Administrador', technician: 'Técnico', user: 'Usuario' };
+    const AVATAR_BG = ['#5A3FA3', '#4BB7B5', '#E7B547', '#2563eb', '#059669', '#ec4899', '#6366f1', '#e11d48', '#0891b2', '#7c3aed'];
+    const d = n => new Date(Date.now() - n * 864e5).toISOString();
+
+    const SEED_CATEGORIES = [
+      { id: 1, name: 'Hardware', icon: '🖥️', color: '#5A3FA3' },
+      { id: 2, name: 'Software', icon: '💿', color: '#4BB7B5' },
+      { id: 3, name: 'Red / Conectividad', icon: '🌐', color: '#E7B547' },
+      { id: 4, name: 'Correo Electrónico', icon: '📧', color: '#ef4444' },
+      { id: 5, name: 'Accesos / Permisos', icon: '🔐', color: '#8b5cf6' },
+      { id: 6, name: 'Otro', icon: '📋', color: '#64748b' }
+    ];
+    const SEED_USERS = [
+      { id: 1, name: 'Admin Push HR', email: 'admin@pushhr.com', password: 'admin123', role: 'admin', department: 'Tecnología', createdAt: d(90) },
+      { id: 2, name: 'Carlos Mendoza', email: 'carlos@pushhr.com', password: 'tech123', role: 'technician', department: 'Soporte TI', createdAt: d(60) },
+      { id: 3, name: 'María García', email: 'maria@pushhr.com', password: 'user123', role: 'user', department: 'Recursos Humanos', createdAt: d(45) },
+      { id: 4, name: 'Ana López', email: 'ana@pushhr.com', password: 'tech123', role: 'technician', department: 'Soporte TI', createdAt: d(50) },
+      { id: 5, name: 'Pedro Martínez', email: 'pedro@pushhr.com', password: 'user123', role: 'user', department: 'Contabilidad', createdAt: d(30) },
+      { id: 6, name: 'Laura Sánchez', email: 'laura@pushhr.com', password: 'user123', role: 'user', department: 'Marketing', createdAt: d(20) },
+      { id: 7, name: 'Roberto Díaz', email: 'roberto@pushhr.com', password: 'tech123', role: 'technician', department: 'Infraestructura', createdAt: d(55) }
+    ];
+    const SEED_TICKETS = [
+      { id: 1001, title: 'No puedo acceder al correo corporativo', description: 'Desde esta mañana no puedo iniciar sesión en mi correo de Outlook. Aparece error de credenciales inválidas aunque mi contraseña es correcta.', categoryId: 4, priority: 'high', status: 'open', creatorId: 3, assignedTo: 2, createdAt: d(0.5), updatedAt: d(0.3) },
+      { id: 1002, title: 'Solicitud de segundo monitor', description: 'Necesito un segundo monitor de al menos 24" para mejorar la productividad.', categoryId: 1, priority: 'low', status: 'in_progress', creatorId: 5, assignedTo: 2, createdAt: d(3), updatedAt: d(1) },
+      { id: 1003, title: 'Impresora piso 3 no funciona', description: 'La impresora HP LaserJet del piso 3 muestra error "Paper Jam" constantemente.', categoryId: 1, priority: 'medium', status: 'waiting', creatorId: 3, assignedTo: 4, createdAt: d(2), updatedAt: d(1) },
+      { id: 1004, title: 'VPN no conecta desde casa', description: 'No puedo establecer conexión VPN. El cliente Cisco AnyConnect muestra timeout.', categoryId: 3, priority: 'critical', status: 'open', creatorId: 5, assignedTo: null, createdAt: d(0.2), updatedAt: d(0.2) },
+      { id: 1005, title: 'Pantalla azul después de actualización', description: 'Mi laptop muestra BSOD con error CRITICAL_PROCESS_DIED después de actualizar Windows.', categoryId: 2, priority: 'critical', status: 'in_progress', creatorId: 6, assignedTo: 2, createdAt: d(1), updatedAt: d(0.5) },
+      { id: 1006, title: 'Acceso a carpeta compartida Finanzas', description: 'Requiero acceso de lectura a la carpeta \\\\server\\finanzas para reportes.', categoryId: 5, priority: 'medium', status: 'closed', creatorId: 5, assignedTo: 4, createdAt: d(7), updatedAt: d(5) },
+      { id: 1007, title: 'Instalar Adobe Acrobat Pro', description: 'Necesito Adobe Acrobat Pro DC para editar documentos PDF.', categoryId: 2, priority: 'low', status: 'closed', creatorId: 3, assignedTo: 2, createdAt: d(10), updatedAt: d(8) },
+      { id: 1008, title: 'Mouse inalámbrico dejó de funcionar', description: 'Mi mouse Logitech dejó de responder. Ya cambié baterías sin éxito.', categoryId: 1, priority: 'low', status: 'open', creatorId: 6, assignedTo: 7, createdAt: d(0.8), updatedAt: d(0.8) },
+      { id: 1009, title: 'Lentitud extrema en SAP', description: 'SAP extremadamente lento desde hace 2 días. Transacciones tardan 30+ segundos.', categoryId: 2, priority: 'high', status: 'in_progress', creatorId: 5, assignedTo: 7, createdAt: d(2), updatedAt: d(0.5) },
+      { id: 1010, title: 'Configurar nuevo equipo para empleado', description: 'Se requiere configurar laptop Dell para nuevo empleado de Marketing.', categoryId: 1, priority: 'medium', status: 'open', creatorId: 3, assignedTo: null, createdAt: d(0.1), updatedAt: d(0.1) },
+      { id: 1011, title: 'Licencia de Microsoft Office desactivada', description: 'Mi licencia de Office 365 está desactivada. No puedo usar Word ni Excel.', categoryId: 2, priority: 'high', status: 'waiting', creatorId: 6, assignedTo: 4, createdAt: d(1.5), updatedAt: d(0.8) },
+      { id: 1012, title: 'WiFi intermitente en sala de reuniones', description: 'WiFi se cae cada 10-15 min durante videollamadas.', categoryId: 3, priority: 'high', status: 'in_progress', creatorId: 3, assignedTo: 7, createdAt: d(4), updatedAt: d(1) }
+    ];
+    const SEED_MESSAGES = [
+      { id: 1, ticketId: 1001, userId: 3, content: 'Buenos días, no puedo acceder a mi correo desde las 8am.', createdAt: d(0.5) },
+      { id: 2, ticketId: 1001, userId: 2, content: 'Hola María, vamos a revisar tu cuenta. ¿Puedes confirmar tu usuario exacto?', createdAt: d(0.4) },
+      { id: 3, ticketId: 1001, userId: 3, content: 'Mi usuario es mgarcia@pushhr.com. Error: 0x800CCC92', createdAt: d(0.35) },
+      { id: 4, ticketId: 1002, userId: 5, content: 'Solicito un segundo monitor para mi estación de trabajo.', createdAt: d(3) },
+      { id: 5, ticketId: 1002, userId: 2, content: 'Tenemos un Dell 24" disponible. ¿Tu equipo tiene HDMI o DisplayPort?', createdAt: d(1) },
+      { id: 6, ticketId: 1003, userId: 3, content: 'La impresora del piso 3 no imprime. Muestra Paper Jam pero no hay papel atascado.', createdAt: d(2) },
+      { id: 7, ticketId: 1003, userId: 4, content: 'Tiene un sensor dañado. Ya solicité el repuesto. Usa la del piso 2 mientras tanto.', createdAt: d(1) },
+      { id: 8, ticketId: 1005, userId: 6, content: '¡Mi laptop no enciende! Solo muestra pantalla azul.', createdAt: d(1) },
+      { id: 9, ticketId: 1005, userId: 2, content: 'Tus archivos están seguros. Estamos reinstalando Windows y recuperando datos.', createdAt: d(0.5) },
+      { id: 10, ticketId: 1009, userId: 5, content: 'SAP está muy lento, transacciones básicas tardan 30 segundos.', createdAt: d(2) },
+      { id: 11, ticketId: 1009, userId: 7, content: 'Investigando. Parece problema con el servidor de BD. Ya escalamos.', createdAt: d(1) },
+      { id: 12, ticketId: 1006, userId: 4, content: 'Acceso otorgado. Verifica que puedas acceder.', createdAt: d(5.5) },
+      { id: 13, ticketId: 1006, userId: 5, content: 'Confirmado, ya tengo acceso. ¡Gracias!', createdAt: d(5) }
+    ];
+    const SEED_HISTORY = [
+      { id: 1, ticketId: 1001, userId: 3, action: 'Ticket creado', createdAt: d(0.5) },
+      { id: 2, ticketId: 1001, userId: 1, action: 'Asignado a Carlos Mendoza', createdAt: d(0.45) },
+      { id: 3, ticketId: 1002, userId: 5, action: 'Ticket creado', createdAt: d(3) },
+      { id: 4, ticketId: 1002, userId: 2, action: 'Estado → En Progreso', createdAt: d(2) },
+      { id: 5, ticketId: 1005, userId: 6, action: 'Ticket creado', createdAt: d(1) },
+      { id: 6, ticketId: 1005, userId: 1, action: 'Prioridad → Crítica', createdAt: d(0.9) },
+      { id: 7, ticketId: 1006, userId: 4, action: 'Estado → Cerrado', createdAt: d(5) }
+    ];
+
+    /* ═══════ UTILITIES ═══════ */
+    const ls = { get: (k, def) => { try { const v = localStorage.getItem('phd_' + k); return v ? JSON.parse(v) : def } catch { return def } }, set: (k, v) => { try { localStorage.setItem('phd_' + k, JSON.stringify(v)) } catch { } } };
+    const genId = () => Date.now() + Math.floor(Math.random() * 9999);
+    const initials = n => (n || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+    const avatarBg = n => AVATAR_BG[(n || '').length % AVATAR_BG.length];
+    const timeAgo = ds => { const s = Math.floor((Date.now() - new Date(ds)) / 1e3); if (s < 60) return 'hace un momento'; const m = Math.floor(s / 60); if (m < 60) return `hace ${m}min`; const h = Math.floor(m / 60); if (h < 24) return `hace ${h}h`; const dd = Math.floor(h / 24); if (dd < 30) return `hace ${dd}d`; return new Date(ds).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }) };
+    const fmtDate = ds => new Date(ds).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const fmtShort = ds => new Date(ds).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+
+    /* ═══════ SVG ICONS ═══════ */
+    const IC = {
+      dashboard: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="9" rx="1" /><rect x="14" y="3" width="7" height="5" rx="1" /><rect x="14" y="12" width="7" height="9" rx="1" /><rect x="3" y="16" width="7" height="5" rx="1" /></svg>,
+      ticket: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" /><path d="M13 5v2M13 17v2M13 11v2" /></svg>,
+      plus: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>,
+      users: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg>,
+      settings: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>,
+      search: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>,
+      bell: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" /></svg>,
+      logout: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>,
+      send: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4Z" /><path d="m22 2-11 11" /></svg>,
+      x: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>,
+      arrowLeft: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 19-7-7 7-7" /><path d="M19 12H5" /></svg>,
+      edit: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" /></svg>,
+      trash: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /></svg>,
+      menu: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="4" y1="12" x2="20" y2="12" /><line x1="4" y1="6" x2="20" y2="6" /><line x1="4" y1="18" x2="20" y2="18" /></svg>,
+      clock: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>,
+      check: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>,
+      alert: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>,
+      inbox: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12" /><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" /></svg>,
+      msg: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" /></svg>,
+      chevRight: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="m9 18 6-6-6-6" /></svg>,
+      chevDown: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m6 9 6 6 6-6" /></svg>,
+      clip: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48" /></svg>,
+      mail: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg>,
+      lock: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>,
+    };
+
+    /* ═══════ CONTEXTS ═══════ */
+    const AuthCtx = createContext(null);
+    const DataCtx = createContext(null);
+    const ToastCtx = createContext(null);
+
+    /* ═══════ TOAST PROVIDER ═══════ */
+    function ToastProvider({ children }) {
+      const [toasts, setToasts] = useState([]);
+      const add = (msg, type = 'success') => { const id = genId(); setToasts(p => [...p, { id, msg, type }]); setTimeout(() => setToasts(p => p.filter(t => t.id !== id)), 3500); };
+      return (
+        <ToastCtx.Provider value={add}>
+          {children}
+          <div className="toast-container">
+            {toasts.map(t => <div key={t.id} className={`toast toast-${t.type} slide-up`}>{t.type === 'success' && IC.check}{t.type === 'error' && IC.alert}{t.msg}</div>)}
+          </div>
+        </ToastCtx.Provider>
+      );
+    }
+    const useToast = () => useContext(ToastCtx);
+
+    /* ═══════ DATA PROVIDER ═══════ */
+    function DataProvider({ children }) {
+      const [users, setUsers] = useState([]);
+      const [tickets, setTickets] = useState([]);
+      const [messages, setMessages] = useState([]);
+      const [categories, setCategories] = useState([]);
+      const [history, setHistory] = useState([]);
+      const [loading, setLoading] = useState(true);
+
+      const fetchData = async () => {
+        setLoading(true);
+        try {
+          const { data: cats } = await supabase.from('categories').select('*');
+          const { data: tix } = await supabase.from('tickets').select('*').order('updated_at', { ascending: false });
+          const { data: msgs } = await supabase.from('messages').select('*').order('created_at', { ascending: true });
+          const { data: hist } = await supabase.from('history').select('*').order('created_at', { ascending: false });
+          const { data: profs } = await supabase.from('profiles').select('*');
+
+          setCategories(cats || []);
+          setTickets(tix || []);
+          setMessages(msgs || []);
+          setHistory(hist || []);
+          setUsers(profs || []);
+        } catch (err) {
+          console.error('Error fetching data:', err);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      useEffect(() => {
+        fetchData();
+
+        // Subscribe to changes
+        const tChannel = supabase.channel('tickets_db_changes')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'tickets' }, fetchData)
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, fetchData)
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'history' }, fetchData)
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, fetchData)
+          .subscribe();
+
+        return () => {
+          supabase.removeChannel(tChannel);
+        };
+      }, []);
+
+      const getUser = id => users.find(u => u.id === id);
+      const getCat = id => categories.find(c => c.id === id);
+      const getMsgs = tid => messages.filter(m => m.ticket_id === tid);
+      const getHist = tid => history.filter(h => h.ticket_id === tid);
+
+      const addHist = async (tid, uid, action) => {
+        await supabase.from('history').insert([{ ticket_id: tid, user_id: uid, action }]);
+      };
+
+      const addTicket = async (t) => {
+        const { data, error } = await supabase.from('tickets').insert([t]).select();
+        if (error) throw error;
+        const nw = data[0];
+        await addHist(nw.id, t.creator_id, 'Ticket creado');
+        return nw;
+      };
+
+      const updateTicket = async (id, upd) => {
+        const { error } = await supabase.from('tickets').update(upd).eq('id', id);
+        if (error) throw error;
+      };
+
+      const addMsg = async (m) => {
+        const { data, error } = await supabase.from('messages').insert([m]).select();
+        if (error) throw error;
+        // Update ticket's updated_at via trigger (handled by DB)
+        return data[0];
+      };
+
+      const addUser = async (u) => {
+        // Note: Profile creation usually happens via Auth trigger or signup
+        const { data, error } = await supabase.from('profiles').insert([u]).select();
+        if (error) throw error;
+        return data[0];
+      };
+
+      const updateUser = async (id, upd) => {
+        const { error } = await supabase.from('profiles').update(upd).eq('id', id);
+        if (error) throw error;
+      };
+
+      const deleteUser = async (id) => {
+        const { error } = await supabase.from('profiles').delete().eq('id', id);
+        if (error) throw error;
+      };
+
+      const addCat = async (c) => {
+        const { data, error } = await supabase.from('categories').insert([c]).select();
+        if (error) throw error;
+        return data[0];
+      };
+
+      const updateCat = async (id, upd) => {
+        const { error } = await supabase.from('categories').update(upd).eq('id', id);
+        if (error) throw error;
+      };
+
+      const deleteCat = async (id) => {
+        const { error } = await supabase.from('categories').delete().eq('id', id);
+        if (error) throw error;
+      };
+
+      return <DataCtx.Provider value={{ users, tickets, messages, categories, history, loading, getUser, getCat, getMsgs, getHist, addHist, addTicket, updateTicket, addMsg, addUser, updateUser, deleteUser, addCat, updateCat, deleteCat }}>{children}</DataCtx.Provider>;
+    }
+    const useData = () => useContext(DataCtx);
+
+    /* ═══════ UI PRIMITIVES ═══════ */
+    function Avatar({ name, size = 'md', className = '' }) {
+      return <div className={`avatar avatar-${size} ${className}`} style={{ background: avatarBg(name) }}>{initials(name)}</div>;
+    }
+    function StatusBadge({ status }) { const s = STATUSES[status]; return s ? <span className={`badge ${s.cls}`}><span className="badge-dot" />{s.label}</span> : null; }
+    function PriorityBadge({ priority }) { const p = PRIORITIES[priority]; return p ? <span className={`badge ${p.cls}`}><span className="badge-dot" />{p.label}</span> : null; }
+    function RoleBadge({ role }) { return <span className={`badge badge-${role}`}>{ROLE_LABELS[role] || role}</span>; }
+
+    function Modal({ open, onClose, title, size = 'md', children }) {
+      if (!open) return null;
+      return (
+        <div className="modal-overlay" onClick={onClose}>
+          <div className="modal-bg" />
+          <div className={`modal-card modal-${size} scale-in`} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>{title}</h3>
+              <button className="modal-close" onClick={onClose}>{IC.x}</button>
+            </div>
+            <div className="modal-body">{children}</div>
+          </div>
+        </div>
+      );
+    }
+
+    /* ═══════ LOGIN ═══════ */
+    function LoginPage() {
+      const [email, setEmail] = useState('');
+      const [pass, setPass] = useState('');
+      const [name, setName] = useState('');
+      const [isSignup, setIsSignup] = useState(false);
+      const [err, setErr] = useState('');
+      const [loading, setLoading] = useState(false);
+
+      const validateEmail = (e) => e.toLowerCase().endsWith('@pushhr.cl');
+
+      const submit = async e => {
+        e.preventDefault(); setErr(''); setLoading(true);
+        const cleanEmail = email.trim().toLowerCase();
+        const cleanPass = pass.trim();
+
+        if (!validateEmail(cleanEmail)) {
+          setErr('Solo se permiten correos @Pushhr.cl');
+          setLoading(false);
+          return;
+        }
+
+        try {
+          if (isSignup) {
+            const { data, error } = await supabase.auth.signUp({
+              email: cleanEmail,
+              password: cleanPass,
+              options: { data: { full_name: name.trim() } }
+            });
+            if (error) throw error;
+            alert('Cuenta creada. Ya puedes iniciar sesión.');
+            setIsSignup(false);
+          } else {
+            const { error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password: cleanPass });
+            if (error) throw error;
+          }
+        } catch (error) {
+          setErr(error.message);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      return (
+        <div className="login-bg">
+          <div className="login-blob1" /><div className="login-blob2" />
+          <div style={{ position: 'relative', width: '100%', maxWidth: 420 }} className="fade-in">
+            <div className="login-brand">
+              <div className="login-brand-row">
+                <div className="sidebar-logo-icon">P</div>
+                <h1>Push <span>HR</span></h1>
+              </div>
+              <p>Sistema de Mesa de Ayuda</p>
+            </div>
+            <div className="login-card">
+              <div className="login-title">{isSignup ? 'Crear Cuenta' : 'Bienvenido'}</div>
+              <div className="login-sub">{isSignup ? 'Regístrate con tu correo corporativo' : 'Inicia sesión para continuar'}</div>
+              {err && <div className="login-error shake">{IC.alert} {err}</div>}
+              <form onSubmit={submit}>
+                {isSignup && (
+                  <div className="mb-4">
+                    <label className="form-label">Nombre completo</label>
+                    <div className="input-icon-wrap">
+                      <span className="input-icon">{IC.users}</span>
+                      <input className="form-input form-input-icon" type="text" placeholder="Tu Nombre" value={name} onChange={e => setName(e.target.value)} required />
+                    </div>
+                  </div>
+                )}
+                <div className="mb-4">
+                  <label className="form-label">Correo electrónico corporativo (@pushhr.cl)</label>
+                  <div className="input-icon-wrap">
+                    <span className="input-icon">{IC.mail}</span>
+                    <input className="form-input form-input-icon" type="email" placeholder="tu@pushhr.cl" value={email} onChange={e => setEmail(e.target.value)} required />
+                  </div>
+                </div>
+                <div className="mb-5">
+                  <label className="form-label">Contraseña</label>
+                  <div className="input-icon-wrap">
+                    <span className="input-icon">{IC.lock}</span>
+                    <input className="form-input form-input-icon" type="password" placeholder="••••••••" value={pass} onChange={e => setPass(e.target.value)} required />
+                  </div>
+                </div>
+                <button className="btn btn-purple btn-lg w-full" type="submit" disabled={loading} style={{ gap: 8 }}>
+                  {loading && <span className="spinner" />}
+                  {loading ? (isSignup ? 'Registrando...' : 'Ingresando...') : (isSignup ? 'Registrarse' : 'Iniciar Sesión')}
+                </button>
+              </form>
+              <div className="text-center mt-4">
+                <button className="btn btn-ghost btn-sm" onClick={() => setIsSignup(!isSignup)}>
+                  {isSignup ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    /* ═══════ SIDEBAR ═══════ */
+    function Sidebar({ page, setPage, user, onLogout, mobileOpen, setMobileOpen }) {
+      const { tickets } = useData();
+      const openC = tickets.filter(t => t.status === 'open').length;
+      const critC = tickets.filter(t => t.priority === 'critical' && t.status !== 'closed').length;
+
+      const nav = [
+        { id: 'dashboard', label: 'Dashboard', icon: IC.dashboard },
+        { id: 'tickets', label: 'Tickets', icon: IC.ticket, badge: openC },
+        { id: 'create', label: 'Nuevo Ticket', icon: IC.plus },
+        ...(user.role === 'admin' ? [{ id: 'users', label: 'Usuarios', icon: IC.users }] : []),
+        ...(user.role === 'admin' ? [{ id: 'categories', label: 'Categorías', icon: IC.settings }] : []),
+      ];
+
+      const content = (
+        <div className="sidebar">
+          <div className="sidebar-logo">
+            <div className="sidebar-logo-icon">P</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div className="sidebar-logo-text">Push <span>HR</span></div>
+              <div className="sidebar-logo-sub">Help Desk</div>
+            </div>
+            <button className="mobile-menu-btn" onClick={() => setMobileOpen(false)} style={{ color: 'rgba(255,255,255,.6)', display: mobileOpen ? 'block' : 'none' }}>{IC.x}</button>
+          </div>
+          <div className="sidebar-divider" />
+          <nav className="sidebar-nav">
+            {nav.map(n => (
+              <button key={n.id} className={`sidebar-link ${page === n.id ? 'active' : ''}`} onClick={() => { setPage(n.id); setMobileOpen(false); }}>
+                {n.icon}<span style={{ flex: 1 }}>{n.label}</span>
+                {n.badge > 0 && <span className="sidebar-badge">{n.badge}</span>}
+              </button>
+            ))}
+            {critC > 0 && <div className="sidebar-alert">{IC.alert} {critC} ticket{critC > 1 ? 's' : ''} crítico{critC > 1 ? 's' : ''}</div>}
+          </nav>
+          <div className="sidebar-footer">
+            <div className="sidebar-user">
+              <Avatar name={user.name} size="sm" />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="sidebar-user-name">{user.name}</div>
+                <div className="sidebar-user-role">{ROLE_LABELS[user.role]}</div>
+              </div>
+            </div>
+            <button className="sidebar-logout" onClick={onLogout}>{IC.logout} Cerrar sesión</button>
+          </div>
+        </div>
+      );
+
+      return (
+        <>
+          <div className="sidebar" style={{ display: '' }}>{content}</div>
+          {mobileOpen && (
+            <div className="mobile-overlay">
+              <div className="mobile-overlay-bg" onClick={() => setMobileOpen(false)} />
+              <div className="mobile-sidebar slide-right">{content}</div>
+            </div>
+          )}
+        </>
+      );
+    }
+
+    /* ═══════ TOPBAR ═══════ */
+    function Topbar({ title, sub, user, onMenu }) {
+      const [showProf, setShowProf] = useState(false);
+      return (
+        <div className="topbar">
+          <div className="flex-center gap-3">
+            <button className="mobile-menu-btn" onClick={onMenu}>{IC.menu}</button>
+            <div className="topbar-title"><h1>{title}</h1>{sub && <p>{sub}</p>}</div>
+          </div>
+          <div className="topbar-actions">
+            <button className="topbar-bell">{IC.bell}<span className="topbar-bell-dot pulse2" /></button>
+            <div style={{ position: 'relative' }}>
+              <button className="topbar-profile" onClick={() => setShowProf(!showProf)}>
+                <Avatar name={user.name} size="sm" />
+                <span className="topbar-profile-name">{user.name.split(' ')[0]}</span>
+                {IC.chevDown}
+              </button>
+              {showProf && (
+                <>
+                  <div style={{ position: 'fixed', inset: 0, zIndex: 39 }} onClick={() => setShowProf(false)} />
+                  <div className="profile-dropdown scale-in">
+                    <div className="flex-center gap-3 mb-3">
+                      <Avatar name={user.name} size="lg" />
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontWeight: 700, color: '#1e1e2d', fontSize: 15 }} className="truncate">{user.name}</div>
+                        <div style={{ fontSize: 12, color: '#999' }} className="truncate">{user.email}</div>
+                      </div>
+                    </div>
+                    <div className="flex-center gap-2 mb-3">
+                      <RoleBadge role={user.role} />
+                      <span style={{ fontSize: 12, color: '#bbb' }}>{user.department}</span>
+                    </div>
+                    <div style={{ height: 1, background: '#eee', margin: '8px 0' }} />
+                    <div style={{ fontSize: 10, color: '#ccc', fontWeight: 500 }}>Push HR Help Desk v1.0</div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    /* ═══════ DASHBOARD ═══════ */
+    function DashboardPage({ setPage, setSelTicket }) {
+      const { tickets, getUser } = useData();
+      const auth = useContext(AuthCtx);
+
+      const my = auth.role === 'user' ? tickets.filter(t => t.creator_id === auth.id) : auth.role === 'technician' ? tickets.filter(t => t.assigned_to === auth.id) : tickets;
+      const stats = { open: my.filter(t => t.status === 'open').length, prog: my.filter(t => t.status === 'in_progress').length, closed: my.filter(t => t.status === 'closed').length, crit: my.filter(t => t.priority === 'critical' && t.status !== 'closed').length };
+
+      const ref1 = useRef(null), ref2 = useRef(null), c1 = useRef(null), c2 = useRef(null);
+
+      useEffect(() => {
+        if (c1.current) c1.current.destroy();
+        if (ref1.current) {
+          c1.current = new Chart(ref1.current, { type: 'doughnut', data: { labels: ['Abiertos', 'En Progreso', 'Esperando', 'Cerrados'], datasets: [{ data: [my.filter(t => t.status === 'open').length, my.filter(t => t.status === 'in_progress').length, my.filter(t => t.status === 'waiting').length, my.filter(t => t.status === 'closed').length], backgroundColor: ['#3b82f6', '#f59e0b', '#8b5cf6', '#10b981'], borderWidth: 0, borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '72%', plugins: { legend: { position: 'bottom', labels: { padding: 16, usePointStyle: true, pointStyle: 'circle', font: { family: 'Inter', size: 12, weight: '500' }, color: '#555' } } } } });
+        }
+        if (c2.current) c2.current.destroy();
+        if (ref2.current) {
+          c2.current = new Chart(ref2.current, { type: 'bar', data: { labels: ['Baja', 'Media', 'Alta', 'Crítica'], datasets: [{ data: [my.filter(t => t.priority === 'low').length, my.filter(t => t.priority === 'medium').length, my.filter(t => t.priority === 'high').length, my.filter(t => t.priority === 'critical').length], backgroundColor: ['#94a3b8', '#3b82f6', '#f97316', '#ef4444'], borderRadius: 8, borderSkipped: false, barThickness: 40 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1, font: { family: 'Inter', size: 11 }, color: '#999' }, grid: { color: '#f3f3f3' } }, x: { ticks: { font: { family: 'Inter', size: 12, weight: '500' }, color: '#555' }, grid: { display: false } } } } });
+        }
+        return () => { if (c1.current) c1.current.destroy(); if (c2.current) c2.current.destroy(); };
+      }, [tickets]);
+
+      const recent = my.slice().sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at)).slice(0, 6);
+
+      const cards = [
+        { label: 'Abiertos', val: stats.open, bg: '#eff6ff', color: '#2563eb', icon: IC.inbox },
+        { label: 'En Progreso', val: stats.prog, bg: '#fffbeb', color: '#d97706', icon: IC.clock },
+        { label: 'Cerrados', val: stats.closed, bg: '#ecfdf5', color: '#059669', icon: IC.check },
+        { label: 'Críticos', val: stats.crit, bg: '#fef2f2', color: '#dc2626', icon: IC.alert },
+      ];
+
+      return (
+        <div className="page-content fade-in">
+          <div className="grid-4 mb-6">
+            {cards.map((c, i) => (
+              <div key={i} className="stat-card">
+                <div className="stat-icon" style={{ background: c.bg, color: c.color }}>{c.icon}</div>
+                <div className="stat-val">{c.val}</div>
+                <div className="stat-label">{c.label}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="grid-2 mb-6">
+            <div className="card card-pad">
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: '#1e1e2d', marginBottom: 16 }}>Tickets por Estado</h3>
+              <div style={{ height: 250 }}><canvas ref={ref1} /></div>
+            </div>
+            <div className="card card-pad">
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: '#1e1e2d', marginBottom: 16 }}>Tickets por Prioridad</h3>
+              <div style={{ height: 250 }}><canvas ref={ref2} /></div>
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="flex-between" style={{ padding: '20px 20px 12px' }}>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: '#1e1e2d' }}>Actividad Reciente</h3>
+              <button className="btn btn-ghost btn-sm" onClick={() => setPage('tickets')}>Ver todos {IC.chevRight}</button>
+            </div>
+            <div className="table-wrap">
+              <table>
+                <thead><tr>
+                  <th>Ticket</th>
+                  <th className="hide-mobile">Estado</th>
+                  <th className="hide-mobile">Prioridad</th>
+                  <th>Actualizado</th>
+                </tr></thead>
+                <tbody>
+                  {recent.map(t => {
+                    const cr = getUser(t.creator_id);
+                    return (
+                      <tr key={t.id} onClick={() => { setSelTicket(t.id); setPage('detail'); }}>
+                        <td>
+                          <div className="flex-center gap-3">
+                            <Avatar name={cr?.name || '?'} size="sm" />
+                            <div style={{ minWidth: 0 }}>
+                              <div style={{ fontWeight: 600, color: '#1e1e2d', fontSize: 14 }} className="truncate">{t.title}</div>
+                              <div style={{ fontSize: 12, color: '#aaa' }}>#{t.id} · {cr?.name}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="hide-mobile"><StatusBadge status={t.status} /></td>
+                        <td className="hide-mobile"><PriorityBadge priority={t.priority} /></td>
+                        <td><span style={{ fontSize: 13, color: '#999' }}>{timeAgo(t.updated_at)}</span></td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    /* ═══════ TICKET LIST ═══════ */
+    function TicketListPage({ setPage, setSelTicket }) {
+      const { tickets, getUser, getCat, categories } = useData();
+      const auth = useContext(AuthCtx);
+      const [search, setSearch] = useState('');
+      const [fStatus, setFStatus] = useState('');
+      const [fPrio, setFPrio] = useState('');
+      const [fCat, setFCat] = useState('');
+
+      let list = auth.role === 'user' ? tickets.filter(t => t.creator_id === auth.id) : auth.role === 'technician' ? tickets.filter(t => t.assigned_to === auth.id || !t.assigned_to) : tickets;
+      if (search) { const s = search.toLowerCase(); list = list.filter(t => t.title.toLowerCase().includes(s) || String(t.id).includes(s)); }
+      if (fStatus) list = list.filter(t => t.status === fStatus);
+      if (fPrio) list = list.filter(t => t.priority === fPrio);
+      if (fCat) list = list.filter(t => t.category_id === Number(fCat));
+      list = list.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+
+      return (
+        <div className="page-content fade-in">
+          <div className="flex-between mb-5" style={{ flexWrap: 'wrap', gap: 12 }}>
+            <div><h2 style={{ fontSize: 20, fontWeight: 700, color: '#1e1e2d' }}>Tickets</h2><p style={{ fontSize: 14, color: '#999' }}>{list.length} ticket{list.length !== 1 ? 's' : ''}</p></div>
+            <button className="btn btn-primary" onClick={() => setPage('create')}>{IC.plus} Nuevo Ticket</button>
+          </div>
+
+          <div className="card card-pad mb-4">
+            <div className="filter-bar">
+              <div className="input-icon-wrap">
+                <span className="input-icon">{IC.search}</span>
+                <input className="form-input form-input-icon" placeholder="Buscar tickets..." value={search} onChange={e => setSearch(e.target.value)} />
+              </div>
+              <select className="form-input form-select" value={fStatus} onChange={e => setFStatus(e.target.value)}>
+                <option value="">Todos los estados</option>
+                {Object.entries(STATUSES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+              </select>
+              <select className="form-input form-select" value={fPrio} onChange={e => setFPrio(e.target.value)}>
+                <option value="">Todas las prioridades</option>
+                {Object.entries(PRIORITIES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+              </select>
+              <select className="form-input form-select" value={fCat} onChange={e => setFCat(e.target.value)}>
+                <option value="">Todas las categorías</option>
+                {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
+              </select>
+              {(search || fStatus || fPrio || fCat) && <button className="btn btn-ghost btn-sm" onClick={() => { setSearch(''); setFStatus(''); setFPrio(''); setFCat(''); }}>Limpiar</button>}
+            </div>
+          </div>
+
+          {list.length === 0 ? (
+            <div className="card">
+              <div className="empty">
+                <div className="empty-icon">{IC.inbox}</div>
+                <h3>No hay tickets</h3>
+                <p>No se encontraron tickets con los filtros seleccionados.</p>
+                <button className="btn btn-primary" onClick={() => setPage('create')}>{IC.plus} Crear Ticket</button>
+              </div>
+            </div>
+          ) : (
+            <div className="card">
+              <div className="table-wrap">
+                <table>
+                  <thead><tr>
+                    <th>Ticket</th>
+                    <th className="hide-mobile">Categoría</th>
+                    <th>Estado</th>
+                    <th className="hide-mobile">Prioridad</th>
+                    <th className="hide-mobile">Asignado</th>
+                    <th>Fecha</th>
+                  </tr></thead>
+                  <tbody>
+                    {list.map(t => {
+                      const cr = getUser(t.creator_id); const cat = getCat(t.category_id); const as = getUser(t.assigned_to);
+                      return (
+                        <tr key={t.id} onClick={() => { setSelTicket(t.id); setPage('detail'); }}>
+                          <td>
+                            <div className="flex-center gap-3">
+                              <Avatar name={cr?.name || '?'} size="sm" />
+                              <div style={{ minWidth: 0, maxWidth: 280 }}>
+                                <div style={{ fontWeight: 600, color: '#1e1e2d', fontSize: 14 }} className="truncate">{t.title}</div>
+                                <div style={{ fontSize: 12, color: '#aaa' }}>#{t.id} · {cr?.name}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="hide-mobile">{cat && <span style={{ fontSize: 13, color: '#666' }}>{cat.icon} {cat.name}</span>}</td>
+                          <td><StatusBadge status={t.status} /></td>
+                          <td className="hide-mobile"><PriorityBadge priority={t.priority} /></td>
+                          <td className="hide-mobile">
+                            {as ? <div className="flex-center gap-2"><Avatar name={as.name} size="sm" /><span style={{ fontSize: 13, color: '#666' }}>{as.name.split(' ')[0]}</span></div> : <span style={{ fontSize: 13, color: '#ccc' }} className="italic">Sin asignar</span>}
+                          </td>
+                          <td><span style={{ fontSize: 13, color: '#999' }}>{timeAgo(t.updated_at)}</span></td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    /* ═══════ TICKET DETAIL ═══════ */
+    function TicketDetailPage({ ticketId, setPage }) {
+      const { tickets, updateTicket, addMsg, addHist, getUser, getCat, getMsgs, getHist, users } = useData();
+      const auth = useContext(AuthCtx);
+      const toast = useToast();
+      const ticket = tickets.find(t => t.id === ticketId);
+      const [newMsg, setNewMsg] = useState('');
+      const [tab, setTab] = useState('chat');
+      const endRef = useRef(null);
+
+      const msgs = ticket ? getMsgs(ticketId) : [];
+      const hist = ticket ? getHist(ticketId) : [];
+
+      useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [msgs.length]);
+
+      if (!ticket) return <div className="page-content"><div className="card"><div className="empty"><div className="empty-icon">{IC.ticket}</div><h3>Ticket no encontrado</h3><p></p><button className="btn btn-primary" onClick={() => setPage('tickets')}>Volver</button></div></div></div>;
+
+      const creator = getUser(ticket.creator_id);
+      const assignee = getUser(ticket.assigned_to);
+      const cat = getCat(ticket.category_id);
+      const canEdit = auth.role === 'admin' || auth.role === 'technician';
+      const techs = users.filter(u => u.role === 'technician' || u.role === 'admin');
+
+      const doSend = () => { if (!newMsg.trim()) return; addMsg({ ticket_id: ticketId, user_id: auth.id, content: newMsg.trim() }); setNewMsg(''); toast('Mensaje enviado'); };
+      const doStatus = v => { updateTicket(ticketId, { status: v }); addHist(ticketId, auth.id, `Estado → ${STATUSES[v]?.label}`); toast(`Estado: ${STATUSES[v]?.label}`); };
+      const doPrio = v => { updateTicket(ticketId, { priority: v }); addHist(ticketId, auth.id, `Prioridad → ${PRIORITIES[v]?.label}`); toast(`Prioridad: ${PRIORITIES[v]?.label}`); };
+      const doAssign = v => { const uid = v || null; updateTicket(ticketId, { assigned_to: uid }); const nm = uid ? getUser(uid)?.name : 'Sin asignar'; addHist(ticketId, auth.id, `Asignado a ${nm}`); toast(`Asignado a ${nm}`); };
+
+      return (
+        <div className="page-content fade-in">
+          <button className="back-btn" onClick={() => setPage('tickets')}>{IC.arrowLeft} Volver a tickets</button>
+
+          <div className="detail-grid">
+            <div>
+              {/* Header */}
+              <div className="card card-pad mb-5">
+                <div className="flex-center gap-2 mb-3" style={{ flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: '#aaa' }}>#{ticket.id}</span>
+                  <StatusBadge status={ticket.status} />
+                  <PriorityBadge priority={ticket.priority} />
+                </div>
+                <h2 style={{ fontSize: 20, fontWeight: 700, color: '#1e1e2d', marginBottom: 12, lineHeight: 1.3 }}>{ticket.title}</h2>
+                <p style={{ fontSize: 14, color: '#555', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{ticket.description}</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 16, paddingTop: 16, borderTop: '1px solid #f3f3f3', fontSize: 12, color: '#aaa' }}>
+                  <span className="flex-center gap-2">{IC.clock} {fmtDate(ticket.created_at)}</span>
+                  {cat && <span>{cat.icon} {cat.name}</span>}
+                </div>
+              </div>
+
+              {/* Tabs */}
+              <div className="card" style={{ overflow: 'hidden' }}>
+                <div className="tabs">
+                  <button className={`tab-btn ${tab === 'chat' ? 'active' : ''}`} onClick={() => setTab('chat')}>{IC.msg} Conversación <span className="tab-badge">{msgs.length}</span></button>
+                  <button className={`tab-btn ${tab === 'history' ? 'active' : ''}`} onClick={() => setTab('history')}>{IC.clock} Historial</button>
+                </div>
+
+                {tab === 'chat' ? (
+                  <div className="chat-container">
+                    <div className="chat-messages">
+                      {msgs.length === 0 && <p style={{ textAlign: 'center', color: '#bbb', padding: '60px 0', fontSize: 14 }}>No hay mensajes aún. Inicia la conversación.</p>}
+                      {msgs.map(m => {
+                        const isMe = m.user_id === auth.id;
+                        const sender = getUser(m.user_id);
+                        return (
+                          <div key={m.id} className={`chat-bubble ${isMe ? 'chat-bubble-right' : ''}`}>
+                            <Avatar name={sender?.name || '?'} size="sm" />
+                            <div style={{ maxWidth: '75%' }}>
+                              <div className="chat-meta">
+                                <span className="chat-meta-name">{sender?.name}</span>
+                                <span className="chat-meta-time">{timeAgo(m.created_at)}</span>
+                              </div>
+                              <div className={`chat-text ${isMe ? 'chat-text-right' : 'chat-text-left'}`}>{m.content}</div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      <div ref={endRef} />
+                    </div>
+                    {ticket.status !== 'closed' && (
+                      <div className="chat-input-area">
+                        <div style={{ flex: 1, position: 'relative' }}>
+                          <input className="form-input" value={newMsg} onChange={e => setNewMsg(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doSend(); } }} placeholder="Escribe un mensaje..." style={{ paddingRight: 40 }} />
+                          <button style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#ccc' }}>{IC.clip}</button>
+                        </div>
+                        <button className="btn btn-primary" onClick={doSend} disabled={!newMsg.trim()}>{IC.send} Enviar</button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div style={{ padding: 20, maxHeight: 440, overflowY: 'auto' }} className="space-y-3">
+                    {hist.length === 0 && <p style={{ textAlign: 'center', color: '#bbb', padding: '60px 0', fontSize: 14 }}>Sin historial.</p>}
+                    {hist.map(h => {
+                      const u = getUser(h.user_id); return (
+                        <div key={h.id} className="hist-item">
+                          <div className="hist-dot" />
+                          <div>
+                            <div className="hist-text"><strong>{u?.name}</strong> — {h.action}</div>
+                            <div className="hist-time">{fmtDate(h.created_at)}</div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Sidebar */}
+            <div>
+              {canEdit && (
+                <div className="detail-sidebar-section space-y-4">
+                  <h4>Acciones</h4>
+                  <div>
+                    <label className="form-label">Estado</label>
+                    <select className="form-input form-select" value={ticket.status} onChange={e => doStatus(e.target.value)}>
+                      {Object.entries(STATUSES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="form-label">Prioridad</label>
+                    <select className="form-input form-select" value={ticket.priority} onChange={e => doPrio(e.target.value)}>
+                      {Object.entries(PRIORITIES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+                    </select>
+                  </div>
+                  {auth.role === 'admin' && (
+                    <div>
+                      <label className="form-label">Asignar a</label>
+                      <select className="form-input form-select" value={ticket.assigned_to || ''} onChange={e => doAssign(e.target.value)}>
+                        <option value="">Sin asignar</option>
+                        {techs.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+                      </select>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="detail-sidebar-section">
+                <h4>Detalles</h4>
+                <div className="detail-info">
+                  <div className="detail-info-label">Creado por</div>
+                  <div className="detail-info-row">
+                    <Avatar name={creator?.name || '?'} size="sm" />
+                    <div><div style={{ fontWeight: 600, fontSize: 14, color: '#333' }}>{creator?.name}</div><div style={{ fontSize: 12, color: '#aaa' }}>{creator?.department}</div></div>
+                  </div>
+                </div>
+                <div className="detail-info">
+                  <div className="detail-info-label">Asignado a</div>
+                  {assignee ? <div className="detail-info-row"><Avatar name={assignee.name} size="sm" /><div><div style={{ fontWeight: 600, fontSize: 14, color: '#333' }}>{assignee.name}</div><div style={{ fontSize: 12, color: '#aaa' }}>{assignee.department}</div></div></div> : <p style={{ fontSize: 14, color: '#ccc' }} className="italic">Sin asignar</p>}
+                </div>
+                <div className="detail-info">
+                  <div className="detail-info-label">Categoría</div>
+                  {cat && <div style={{ fontSize: 14, fontWeight: 500, color: '#555' }}>{cat.icon} {cat.name}</div>}
+                </div>
+                <div style={{ height: 1, background: '#eee', margin: '12px 0' }} />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <div><div className="detail-info-label">Creado</div><div style={{ fontSize: 13, fontWeight: 600, color: '#555' }}>{fmtShort(ticket.created_at)}</div></div>
+                  <div><div className="detail-info-label">Actualizado</div><div style={{ fontSize: 13, fontWeight: 600, color: '#555' }}>{timeAgo(ticket.updated_at)}</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    /* ═══════ CREATE TICKET ═══════ */
+    function CreateTicketPage({ setPage, setSelTicket }) {
+      const { addTicket, categories, users } = useData();
+      const auth = useContext(AuthCtx);
+      const toast = useToast();
+      const [form, setForm] = useState({ title: '', description: '', categoryId: '', priority: 'medium', assignedTo: '' });
+      const [errs, setErrs] = useState({});
+      const techs = users.filter(u => u.role === 'technician' || u.role === 'admin');
+      const upd = (k, v) => setForm(p => ({ ...p, [k]: v }));
+
+      const submit = async e => {
+        e.preventDefault();
+        const er = {};
+        if (!form.title.trim()) er.title = 'El título es obligatorio';
+        if (!form.description.trim()) er.description = 'La descripción es obligatoria';
+        if (!form.categoryId) er.categoryId = 'Selecciona una categoría';
+        if (Object.keys(er).length) { setErrs(er); return; }
+        const t = await addTicket({
+          title: form.title,
+          description: form.description,
+          category_id: Number(form.categoryId),
+          assigned_to: form.assignedTo || null,
+          creator_id: auth.id,
+          status: 'open',
+          priority: form.priority
+        });
+        toast('Ticket creado exitosamente');
+        setSelTicket(t.id);
+        setPage('detail');
+      };
+
+      return (
+        <div className="page-content fade-in">
+          <button className="back-btn" onClick={() => setPage('tickets')}>{IC.arrowLeft} Volver</button>
+          <div style={{ maxWidth: 640, margin: '0 auto' }}>
+            <div className="card card-pad">
+              <div className="flex-center gap-3 mb-6">
+                <div style={{ width: 44, height: 44, background: 'var(--turquoise-50)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--turquoise)' }}>{IC.plus}</div>
+                <div><h2 style={{ fontSize: 20, fontWeight: 700, color: '#1e1e2d' }}>Nuevo Ticket</h2><p style={{ fontSize: 14, color: '#999' }}>Describe tu problema o solicitud</p></div>
+              </div>
+              <form onSubmit={submit} className="space-y-4">
+                <div>
+                  <label className="form-label">Título</label>
+                  <input className="form-input" placeholder="Ej: No puedo acceder al correo" value={form.title} onChange={e => upd('title', e.target.value)} />
+                  {errs.title && <p style={{ fontSize: 12, color: '#ef4444', marginTop: 4 }}>{errs.title}</p>}
+                </div>
+                <div>
+                  <label className="form-label">Descripción</label>
+                  <textarea className="form-input" rows={5} placeholder="Describe el problema con detalle..." value={form.description} onChange={e => upd('description', e.target.value)} />
+                  {errs.description && <p style={{ fontSize: 12, color: '#ef4444', marginTop: 4 }}>{errs.description}</p>}
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                  <div>
+                    <label className="form-label">Categoría</label>
+                    <select className="form-input form-select" value={form.categoryId} onChange={e => upd('categoryId', e.target.value)}>
+                      <option value="">Seleccionar...</option>
+                      {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
+                    </select>
+                    {errs.categoryId && <p style={{ fontSize: 12, color: '#ef4444', marginTop: 4 }}>{errs.categoryId}</p>}
+                  </div>
+                  <div>
+                    <label className="form-label">Prioridad</label>
+                    <select className="form-input form-select" value={form.priority} onChange={e => upd('priority', e.target.value)}>
+                      {Object.entries(PRIORITIES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+                    </select>
+                  </div>
+                </div>
+                {auth.role === 'admin' && (
+                  <div>
+                    <label className="form-label">Asignar técnico (opcional)</label>
+                    <select className="form-input form-select" value={form.assignedTo} onChange={e => upd('assignedTo', e.target.value)}>
+                      <option value="">Sin asignar</option>
+                      {techs.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+                    </select>
+                  </div>
+                )}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, paddingTop: 12 }}>
+                  <button type="button" className="btn btn-secondary" onClick={() => setPage('tickets')}>Cancelar</button>
+                  <button type="submit" className="btn btn-primary">{IC.check} Crear Ticket</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    /* ═══════ USER MANAGEMENT ═══════ */
+    function UsersPage() {
+      const { users, addUser, updateUser, deleteUser } = useData();
+      const toast = useToast();
+      const [modal, setModal] = useState(false);
+      const [editU, setEditU] = useState(null);
+      const [form, setForm] = useState({ name: '', email: '', password: '', role: 'user', department: '' });
+      const [search, setSearch] = useState('');
+      const upd = (k, v) => setForm(p => ({ ...p, [k]: v }));
+
+      const openCreate = () => { setEditU(null); setForm({ name: '', email: '', password: '', role: 'user', department: '' }); setModal(true); };
+      const openEdit = u => { setEditU(u); setForm({ name: u.name, email: u.email, password: '', role: u.role, department: u.department }); setModal(true); };
+      const submit = e => {
+        e.preventDefault(); if (!form.name || !form.email) return;
+        if (editU) { const up = { name: form.name, email: form.email, role: form.role, department: form.department }; if (form.password) up.password = form.password; updateUser(editU.id, up); toast('Usuario actualizado'); }
+        else { if (!form.password) return; addUser(form); toast('Usuario creado'); }
+        setModal(false);
+      };
+      const del = u => { if (!confirm(`¿Eliminar a ${u.name}?`)) return; deleteUser(u.id); toast('Usuario eliminado', 'error'); };
+
+      let list = users; if (search) { const s = search.toLowerCase(); list = list.filter(u => u.name.toLowerCase().includes(s) || u.email.toLowerCase().includes(s)); }
+
+      return (
+        <div className="page-content fade-in">
+          <div className="flex-between mb-5" style={{ flexWrap: 'wrap', gap: 12 }}>
+            <div><h2 style={{ fontSize: 20, fontWeight: 700, color: '#1e1e2d' }}>Usuarios</h2><p style={{ fontSize: 14, color: '#999' }}>{users.length} usuarios registrados</p></div>
+            <button className="btn btn-primary" onClick={openCreate}>{IC.plus} Nuevo Usuario</button>
+          </div>
+          <div className="card card-pad mb-4">
+            <div className="input-icon-wrap">
+              <span className="input-icon">{IC.search}</span>
+              <input className="form-input form-input-icon" placeholder="Buscar usuarios..." value={search} onChange={e => setSearch(e.target.value)} />
+            </div>
+          </div>
+          <div className="card">
+            <div className="table-wrap">
+              <table>
+                <thead><tr><th>Usuario</th><th className="hide-mobile">Departamento</th><th>Rol</th><th className="hide-mobile">Registro</th><th style={{ textAlign: 'right' }}>Acciones</th></tr></thead>
+                <tbody>
+                  {list.map(u => (
+                    <tr key={u.id} style={{ cursor: 'default' }}>
+                      <td>
+                        <div className="flex-center gap-3"><Avatar name={u.name} size="md" /><div><div style={{ fontWeight: 600, color: '#1e1e2d', fontSize: 14 }}>{u.name}</div><div style={{ fontSize: 12, color: '#aaa' }}>{u.email}</div></div></div>
+                      </td>
+                      <td className="hide-mobile"><span style={{ color: '#555' }}>{u.department}</span></td>
+                      <td><RoleBadge role={u.role} /></td>
+                      <td className="hide-mobile"><span style={{ fontSize: 13, color: '#aaa' }}>{fmtShort(u.created_at)}</span></td>
+                      <td style={{ textAlign: 'right' }}>
+                        <div className="flex-center gap-2" style={{ justifyContent: 'flex-end' }}>
+                          <button onClick={() => openEdit(u)} style={{ padding: 8, borderRadius: 8, border: 'none', background: 'none', cursor: 'pointer', color: '#aaa', transition: 'color .15s' }} title="Editar">{IC.edit}</button>
+                          <button onClick={() => del(u)} style={{ padding: 8, borderRadius: 8, border: 'none', background: 'none', cursor: 'pointer', color: '#aaa', transition: 'color .15s' }} title="Eliminar">{IC.trash}</button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <Modal open={modal} onClose={() => setModal(false)} title={editU ? 'Editar Usuario' : 'Nuevo Usuario'}>
+            <form onSubmit={submit} className="space-y-4">
+              <div><label className="form-label">Nombre completo</label><input className="form-input" placeholder="Juan Pérez" value={form.name} onChange={e => upd('name', e.target.value)} required /></div>
+              <div><label className="form-label">Correo electrónico</label><input className="form-input" type="email" placeholder="juan@pushhr.com" value={form.email} onChange={e => upd('email', e.target.value)} required /></div>
+              <div><label className="form-label">{editU ? 'Nueva contraseña (vacío = no cambiar)' : 'Contraseña'}</label><input className="form-input" type="password" placeholder="••••••••" value={form.password} onChange={e => upd('password', e.target.value)} required={!editU} /></div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                <div><label className="form-label">Rol</label><select className="form-input form-select" value={form.role} onChange={e => upd('role', e.target.value)}><option value="user">Usuario</option><option value="technician">Técnico</option><option value="admin">Administrador</option></select></div>
+                <div><label className="form-label">Departamento</label><input className="form-input" placeholder="Ej: IT" value={form.department} onChange={e => upd('department', e.target.value)} /></div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, paddingTop: 8 }}>
+                <button type="button" className="btn btn-secondary" onClick={() => setModal(false)}>Cancelar</button>
+                <button type="submit" className="btn btn-primary">{IC.check} {editU ? 'Guardar' : 'Crear'}</button>
+              </div>
+            </form>
+          </Modal>
+        </div>
+      );
+    }
+
+    /* ═══════ CATEGORIES ═══════ */
+    function CategoriesPage() {
+      const { categories, addCat, updateCat, deleteCat, reset } = useData();
+      const toast = useToast();
+      const [modal, setModal] = useState(false);
+      const [editC, setEditC] = useState(null);
+      const [form, setForm] = useState({ name: '', icon: '📋', color: '#5A3FA3' });
+      const upd = (k, v) => setForm(p => ({ ...p, [k]: v }));
+
+      const openCreate = () => { setEditC(null); setForm({ name: '', icon: '📋', color: '#5A3FA3' }); setModal(true); };
+      const openEdit = c => { setEditC(c); setForm({ name: c.name, icon: c.icon, color: c.color }); setModal(true); };
+      const submit = e => { e.preventDefault(); if (!form.name) return; if (editC) { updateCat(editC.id, form); toast('Categoría actualizada'); } else { addCat(form); toast('Categoría creada'); } setModal(false); };
+      const del = c => { if (!confirm(`¿Eliminar "${c.name}"?`)) return; deleteCat(c.id); toast('Categoría eliminada', 'error'); };
+
+      return (
+        <div className="page-content fade-in">
+          <div className="flex-between mb-5" style={{ flexWrap: 'wrap', gap: 12 }}>
+            <div><h2 style={{ fontSize: 20, fontWeight: 700, color: '#1e1e2d' }}>Categorías</h2><p style={{ fontSize: 14, color: '#999' }}>Gestiona las categorías de tickets</p></div>
+            <div className="flex-center gap-2">
+              <button className="btn btn-primary" onClick={openCreate}>{IC.plus} Nueva Categoría</button>
+            </div>
+          </div>
+          <div className="grid-3">
+            {categories.map(c => (
+              <div key={c.id} className="cat-card">
+                <div className="flex-between">
+                  <div className="flex-center gap-3">
+                    <div style={{ width: 44, height: 44, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, background: c.color + '18' }}>{c.icon}</div>
+                    <div><div style={{ fontWeight: 700, color: '#1e1e2d', fontSize: 15 }}>{c.name}</div><div style={{ fontSize: 12, color: '#bbb' }}>ID: {c.id}</div></div>
+                  </div>
+                  <div className="flex-center gap-2">
+                    <button onClick={() => openEdit(c)} style={{ padding: 6, borderRadius: 8, border: 'none', background: 'none', cursor: 'pointer', color: '#aaa' }}>{IC.edit}</button>
+                    <button onClick={() => del(c)} style={{ padding: 6, borderRadius: 8, border: 'none', background: 'none', cursor: 'pointer', color: '#aaa' }}>{IC.trash}</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <Modal open={modal} onClose={() => setModal(false)} title={editC ? 'Editar Categoría' : 'Nueva Categoría'} size="sm">
+            <form onSubmit={submit} className="space-y-4">
+              <div><label className="form-label">Nombre</label><input className="form-input" placeholder="Ej: Hardware" value={form.name} onChange={e => upd('name', e.target.value)} required /></div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                <div><label className="form-label">Icono (emoji)</label><input className="form-input" placeholder="🖥️" value={form.icon} onChange={e => upd('icon', e.target.value)} /></div>
+                <div><label className="form-label">Color</label><input type="color" value={form.color} onChange={e => upd('color', e.target.value)} className="form-input" style={{ height: 42, padding: 4, cursor: 'pointer' }} /></div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, paddingTop: 8 }}>
+                <button type="button" className="btn btn-secondary" onClick={() => setModal(false)}>Cancelar</button>
+                <button type="submit" className="btn btn-primary">{IC.check} {editC ? 'Guardar' : 'Crear'}</button>
+              </div>
+            </form>
+          </Modal>
+        </div>
+      );
+    }
+
+    /* ═══════ MAIN APP ═══════ */
+    function AppContent() {
+      const [session, setSession] = useState(null);
+      const [profile, setProfile] = useState(null);
+      const [loadingAuth, setLoadingAuth] = useState(true);
+      const [page, setPage] = useState('dashboard');
+      const [selTicket, setSelTicket] = useState(null);
+      const [mobileOpen, setMobileOpen] = useState(false);
+      const { users } = useData();
+
+      useEffect(() => {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          setSession(session);
+          setLoadingAuth(false);
+        });
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+          setSession(session);
+        });
+
+        return () => subscription.unsubscribe();
+      }, []);
+
+      useEffect(() => {
+        if (session?.user && users.length > 0) {
+          const prof = users.find(u => u.id === session.user.id);
+          setProfile(prof || null);
+        } else {
+          setProfile(null);
+        }
+      }, [session, users]);
+
+      const logout = async () => {
+        await supabase.auth.signOut();
+        setPage('dashboard');
+      };
+
+      const createManualProfile = async () => {
+        if (!session?.user) return;
+        try {
+          const { error } = await supabase.from('profiles').insert([{
+            id: session.user.id,
+            email: session.user.email,
+            name: session.user.user_metadata?.full_name || 'Usuario',
+            role: 'user',
+            department: 'Nuevo'
+          }]);
+          if (error) alert('Error al crear perfil: ' + error.message);
+          else {
+            alert('Perfil creado manualmente con éxito.');
+            window.location.reload();
+          }
+        } catch (e) {
+          alert('Error inesperado: ' + e.message);
+        }
+      };
+
+      if (loadingAuth) return <div className="login-bg"><span className="spinner" style={{ width: 40, height: 40 }} /></div>;
+      if (!session) return <LoginPage onLogin={() => { }} />;
+      if (!profile) return (
+        <div className="login-bg">
+          <div className="login-card text-center">
+            <h3>Configurando perfil...</h3>
+            <p>Espere un momento mientras preparamos su cuenta.</p>
+            <span className="spinner" style={{ borderColor: 'var(--purple)', borderTopColor: 'transparent', margin: '20px auto' }} />
+            <div className="flex-center flex-col gap-3 mt-4">
+              <button className="btn btn-purple btn-sm" onClick={createManualProfile}>Crear mi perfil ahora (Manual)</button>
+              <button className="btn btn-ghost btn-sm" onClick={logout}>Cancelar / Cerrar sesión</button>
+            </div>
+            <p style={{ fontSize: 12, color: '#999', marginTop: 20 }}>Si esto tarda mucho, haz clic en el botón morado o asegúrate de haber ejecutado el script SQL en Supabase.</p>
+          </div>
+        </div>
+      );
+
+      const titles = { dashboard: { t: 'Dashboard', s: 'Vista general del sistema' }, tickets: { t: 'Tickets', s: 'Gestión de tickets' }, create: { t: 'Nuevo Ticket', s: 'Crear solicitud' }, detail: { t: `Ticket #${selTicket || ''}`, s: 'Detalle del ticket' }, users: { t: 'Usuarios', s: 'Gestión de usuarios' }, categories: { t: 'Categorías', s: 'Configuración' } };
+      const ti = titles[page] || titles.dashboard;
+
+      const renderPage = () => {
+        switch (page) {
+          case 'dashboard': return <DashboardPage setPage={setPage} setSelTicket={setSelTicket} />;
+          case 'tickets': return <TicketListPage setPage={setPage} setSelTicket={setSelTicket} />;
+          case 'create': return <CreateTicketPage setPage={setPage} setSelTicket={setSelTicket} />;
+          case 'detail': return <TicketDetailPage ticketId={selTicket} setPage={setPage} />;
+          case 'users': return profile.role === 'admin' ? <UsersPage /> : <DashboardPage setPage={setPage} setSelTicket={setSelTicket} />;
+          case 'categories': return profile.role === 'admin' ? <CategoriesPage /> : <DashboardPage setPage={setPage} setSelTicket={setSelTicket} />;
+          default: return <DashboardPage setPage={setPage} setSelTicket={setSelTicket} />;
+        }
+      };
+
+      return (
+        <AuthCtx.Provider value={profile}>
+          <div className="app-layout">
+            <Sidebar page={page} setPage={setPage} user={profile} onLogout={logout} mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
+            <div className="main-area">
+              <Topbar title={ti.t} sub={ti.s} user={profile} onMenu={() => setMobileOpen(true)} />
+              <main style={{ flex: 1 }}>{renderPage()}</main>
+            </div>
+          </div>
+        </AuthCtx.Provider>
+      );
+    }
+
+    function App() {
+      return <ToastProvider><DataProvider><AppContent /></DataProvider></ToastProvider>;
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+
+</html>
