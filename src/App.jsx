@@ -29,20 +29,29 @@ function AppContent() {
     useEffect(() => {
         // Auto-create profile if missing and authenticated
         if (session?.user && !profile && !loadingData) {
-            const createProfile = async () => {
+            const checkAndCreate = async () => {
                 try {
-                    await supabase.from('profiles').upsert([{
-                        id: session.user.id,
-                        email: session.user.email,
-                        name: session.user.user_metadata?.full_name || session.user.email.split('@')[0],
-                        role: profile?.role || 'user',
-                        department: profile?.department || 'General'
-                    }]);
+                    // Direct DB check to avoid race conditions with local state
+                    const { data, error } = await supabase
+                        .from('profiles')
+                        .select('id')
+                        .eq('id', session.user.id)
+                        .maybeSingle();
+
+                    if (!data && !error) {
+                        await supabase.from('profiles').insert([{
+                            id: session.user.id,
+                            email: session.user.email,
+                            name: session.user.user_metadata?.full_name || session.user.email.split('@')[0],
+                            role: 'user',
+                            department: 'General'
+                        }]);
+                    }
                 } catch (e) {
-                    console.error("Auto-profile creation failed:", e);
+                    console.error("Auto-profile check/creation failed:", e);
                 }
             };
-            createProfile();
+            checkAndCreate();
         }
     }, [session, profile, loadingData]);
 

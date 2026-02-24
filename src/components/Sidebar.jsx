@@ -28,8 +28,18 @@ export function Sidebar({ page, setPage, profile, users }) {
 
     return (
         <aside className="sidebar">
-            <div className="sidebar-logo" style={{ padding: '20px 24px' }}>
-                <img src={logo} alt="Push HR" style={{ height: 45, width: 'auto', objectFit: 'contain' }} />
+            <div className="sidebar-logo" style={{ padding: '24px 20px', display: 'flex', justifyContent: 'center' }}>
+                <img
+                    src={logo}
+                    alt="Push HR"
+                    style={{
+                        height: 'auto',
+                        maxHeight: 40,
+                        maxWidth: '100%',
+                        objectFit: 'contain',
+                        filter: 'brightness(0) invert(1)'
+                    }}
+                />
             </div>
             <div className="sidebar-divider" />
             <nav className="sidebar-nav">
