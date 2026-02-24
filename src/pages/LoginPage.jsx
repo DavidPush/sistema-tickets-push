@@ -55,7 +55,7 @@ export function LoginPage() {
     };
 
     const loginMicrosoft = async () => {
-        toast('🚀 ¡Caché activado! Estamos coordinando con Microsoft para habilitar este acceso corporativo muy pronto.', 'info');
+        toast('🌐 Estamos trabajando en conjunto con Microsoft para habilitar el acceso corporativo próximamente. ¡Gracias por tu paciencia!', 'info');
     };
 
     const loginMagicLink = async () => {
