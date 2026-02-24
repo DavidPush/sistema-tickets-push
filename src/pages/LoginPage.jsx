@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../services/supabase';
 import { IC } from '../assets/icons';
+import { useToast } from '../context/ToastContext';
 import logo from '../assets/logo.png';
 
 export function LoginPage() {
@@ -11,6 +12,7 @@ export function LoginPage() {
     const [err, setErr] = useState('');
     const [loading, setLoading] = useState(false);
     const [msgSent, setMsgSent] = useState(false);
+    const toast = useToast();
 
     const validateEmail = (e) => e.toLowerCase().endsWith('@pushhr.cl');
 
@@ -53,21 +55,7 @@ export function LoginPage() {
     };
 
     const loginMicrosoft = async () => {
-        setErr('');
-        setLoading(true);
-        try {
-            const { error } = await supabase.auth.signInWithOAuth({
-                provider: 'azure',
-                options: {
-                    scopes: 'email profile openid',
-                    redirectTo: window.location.origin
-                }
-            });
-            if (error) throw error;
-        } catch (e) {
-            setErr(e.message);
-            setLoading(false);
-        }
+        toast('🚀 ¡Caché activado! Estamos coordinando con Microsoft para habilitar este acceso corporativo muy pronto.', 'info');
     };
 
     const loginMagicLink = async () => {
