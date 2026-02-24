@@ -6,6 +6,7 @@ import { ROLE_LABELS } from '../utils/constants';
 
 export function Sidebar({ page, setPage, profile, users }) {
     const { logout } = useAuth();
+    const isAdmin = profile?.role === 'admin';
     const isUser = profile?.role === 'user';
 
     const navItems = [

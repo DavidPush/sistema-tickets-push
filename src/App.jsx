@@ -31,12 +31,12 @@ function AppContent() {
         if (session?.user && !profile && !loadingData) {
             const createProfile = async () => {
                 try {
-                    await supabase.from('profiles').insert([{
+                    await supabase.from('profiles').upsert([{
                         id: session.user.id,
                         email: session.user.email,
                         name: session.user.user_metadata?.full_name || session.user.email.split('@')[0],
-                        role: 'user',
-                        department: 'General'
+                        role: profile?.role || 'user',
+                        department: profile?.department || 'General'
                     }]);
                 } catch (e) {
                     console.error("Auto-profile creation failed:", e);
