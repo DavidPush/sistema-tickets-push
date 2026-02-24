@@ -84,9 +84,9 @@ export function LoginPage() {
             <div className="login-blob1" />
             <div className="login-blob2" />
             <div className="login-card fade-in">
-                <div className="login-brand">
-                    <img src={logo} alt="Push HR" style={{ height: 64, width: 'auto', objectFit: 'contain' }} />
-                    <p style={{ color: '#64748b', marginTop: 8, fontSize: 13, fontWeight: 500 }}>Help Desk System</p>
+                <div className="login-brand" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+                    <img src={logo} alt="Push HR" style={{ height: 'auto', maxHeight: 64, width: '100%', maxWidth: 280, objectFit: 'contain' }} />
+                    <p style={{ color: '#64748b', marginTop: 12, fontSize: 13, fontWeight: 500, letterSpacing: '0.025em' }}>Help Desk System</p>
                 </div>
 
                 <h2 className="login-title">{isSignup ? 'Crea tu cuenta' : '¡Bienvenido!'}</h2>
