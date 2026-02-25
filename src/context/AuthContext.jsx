@@ -33,8 +33,13 @@ export function AuthProvider({ children }) {
 
     const requestPasswordReset = async (email) => {
         const isLocal = window.location.hostname === 'localhost';
+        const redirect = isLocal ? window.location.origin : SITE_URL;
+
+        console.log('🚀 Requesting Reset for:', email);
+        console.log('Target Redirect:', redirect);
+
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: isLocal ? window.location.origin : SITE_URL
+            redirectTo: redirect
         });
         if (error) throw error;
     };

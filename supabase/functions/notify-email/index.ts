@@ -24,42 +24,114 @@ serve(async (req: Request) => {
             throw new Error('TEAMS_WEBHOOK_URL is not set')
         }
 
-        // Determine color based on priority
-        let themeColor = "5A3FA3" // Default Purple
+        // Determine color and icons based on priority
+        let accentColor = "default"
+        let priorityIcon = "https://img.icons8.com/fluency/48/info.png"
         const p = priority?.toLowerCase() || 'medium'
-        if (p === 'hugh' || p === 'high' || p === 'critical') themeColor = "E74C3C" // Red
-        if (p === 'medium') themeColor = "F39C12" // Orange
+
+        if (p === 'hugh' || p === 'high' || p === 'critical') {
+            accentColor = "attention"
+            priorityIcon = "https://img.icons8.com/fluency/48/high-priority.png"
+        } else if (p === 'medium') {
+            accentColor = "warning"
+            priorityIcon = "https://img.icons8.com/fluency/48/error.png"
+        } else {
+            accentColor = "accent"
+            priorityIcon = "https://img.icons8.com/fluency/48/low-priority.png"
+        }
+
+        // Determine event icon
+        let eventIcon = "https://img.icons8.com/fluency/96/ticket.png"
+        if (subject?.toLowerCase().includes('respuesta') || subject?.toLowerCase().includes('mensaje')) {
+            eventIcon = "https://img.icons8.com/fluency/96/comments.png"
+        } else if (subject?.toLowerCase().includes('asignado')) {
+            eventIcon = "https://img.icons8.com/fluency/96/user-male-circle.png"
+        } else if (subject?.toLowerCase().includes('resuelto')) {
+            eventIcon = "https://img.icons8.com/fluency/96/ok.png"
+        }
 
         // Prepare text content
         const textContent = content || html?.replace(/<[^>]*>?/gm, '') || 'Sin detalles adicionales';
 
-        // Premium MessageCard format
-        const teamsMessage: any = {
-            "@type": "MessageCard",
-            "@context": "http://schema.org/extensions",
-            "themeColor": themeColor,
-            "summary": subject,
-            "sections": [
+        // Premium AdaptiveCard format
+        const teamsMessage = {
+            "type": "message",
+            "attachments": [
                 {
-                    "activityTitle": `🎫 ${subject}`,
-                    "activitySubtitle": title || "Actualización de Ticket",
-                    "activityImage": "https://img.icons8.com/fluency/96/ticket.png",
-                    "facts": [
-                        { "name": "Creado por:", "value": creator || "N/A" },
-                        { "name": "Prioridad:", "value": p.toUpperCase() },
-                        { "name": "ID Ticket:", "value": ticketId ? `TK-${ticketId.toString().padStart(4, '0')}` : "N/A" }
-                    ],
-                    "text": `**Mensaje:**\n\n${textContent}`,
-                    "markdown": true
-                }
-            ],
-            "potentialAction": [
-                {
-                    "@type": "OpenUri",
-                    "name": "Ver Ticket en el Panel",
-                    "targets": [
-                        { "os": "default", "uri": ticketUrl || "https://glzhkzmbcnizaamqtdin.supabase.co" }
-                    ]
+                    "contentType": "application/vnd.microsoft.card.adaptive",
+                    "content": {
+                        "type": "AdaptiveCard",
+                        "body": [
+                            {
+                                "type": "ColumnSet",
+                                "columns": [
+                                    {
+                                        "type": "Column",
+                                        "width": "auto",
+                                        "items": [
+                                            {
+                                                "type": "Image",
+                                                "url": eventIcon,
+                                                "size": "Medium",
+                                                "style": "Person"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "type": "Column",
+                                        "width": "stretch",
+                                        "items": [
+                                            {
+                                                "type": "TextBlock",
+                                                "text": subject || "Actualización de Ticket",
+                                                "weight": "Bolder",
+                                                "size": "Large",
+                                                "wrap": true
+                                            },
+                                            {
+                                                "type": "TextBlock",
+                                                "spacing": "None",
+                                                "text": title || "Sistema Push HR",
+                                                "isSubtle": true,
+                                                "wrap": true
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "Container",
+                                "spacing": "Medium",
+                                "separator": true,
+                                "items": [
+                                    {
+                                        "type": "FactSet",
+                                        "facts": [
+                                            { "title": "👤 Creado por:", "value": payload.creator || "N/A" },
+                                            { "title": "🚨 Prioridad:", "value": p.toUpperCase() },
+                                            { "title": "🆔 ID Ticket:", "value": ticketId ? `TK-${ticketId.toString().padStart(4, '0')}` : "N/A" }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "TextBlock",
+                                "text": `**Mensaje:**\n\n${textContent}`,
+                                "wrap": true,
+                                "spacing": "Large"
+                            }
+                        ],
+                        "actions": [
+                            {
+                                "type": "Action.OpenUrl",
+                                "title": "Ver Detalle en el Panel",
+                                "url": ticketUrl || "https://push-hr-tickets.netlify.app/",
+                                "style": "positive"
+                            }
+                        ],
+                        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                        "version": "1.4"
+                    }
                 }
             ]
         };
@@ -67,7 +139,7 @@ serve(async (req: Request) => {
         const res = await fetch(TEAMS_WEBHOOK_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(teamsMessage),
+            body: JSON.stringify(teamsMessage)
         })
 
         const responseText = await res.text();
