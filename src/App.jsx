@@ -28,6 +28,39 @@ function AppContent() {
 
     const profile = users.find(u => u.id === session?.user?.id);
 
+    const { updateTicket } = useData();
+    const toast = useToast();
+
+    useEffect(() => {
+        // Handle Quick Actions from Teams deep links
+        const params = new URLSearchParams(window.location.search);
+        const action = params.get('action');
+        const ticketId = params.get('id');
+
+        if (session?.user && action && ticketId && !loadingData) {
+            const processAction = async () => {
+                try {
+                    const tid = parseInt(ticketId);
+                    if (action === 'assign') {
+                        await updateTicket(tid, { assigned_to: session.user.id, status: 'En Proceso' });
+                        toast('Ticket asignado correctamente', 'success');
+                    } else if (action === 'resolve') {
+                        await updateTicket(tid, { status: 'Resuelto' });
+                        toast('Ticket marcado como Resuelto', 'success');
+                    }
+                    // Clean URL
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                    // Navigate to ticket detail
+                    setSelTicket(tid);
+                    setPage('detail');
+                } catch (e) {
+                    console.error('Quick action failed:', e);
+                }
+            };
+            processAction();
+        }
+    }, [session, loadingData, updateTicket, toast]);
+
     useEffect(() => {
         if (session?.user && !profile && !loadingData) {
             const checkAndCreate = async () => {

@@ -127,38 +127,54 @@ export function DataProvider({ children }) {
         return () => sub.unsubscribe();
     }, [fetchData]);
 
-    // Actions with Optimistic UI updates
+    const notifyTeams = async (type, ticket, extra = {}) => {
+        try {
+            const creator = users.find(u => u.id === ticket.creator_id);
+            const creatorLabel = creator ? `${creator.name} (${creator.email})` : 'Usuario';
+
+            let subject = '';
+            let content = '';
+
+            if (type === 'new') {
+                subject = `🎫 Nuevo Ticket creado: ${ticket.title}`;
+                content = `Se ha creado un nuevo ticket con prioridad **${ticket.priority}**.`;
+            } else if (type === 'update') {
+                subject = extra.subject || `🔄 Ticket Actualizado: ${ticket.title}`;
+                content = extra.content || `El estado del ticket ha cambiado a: **${ticket.status}**.`;
+            } else if (type === 'message') {
+                subject = `💬 Nuevo Mensaje: ${ticket.title}`;
+                content = extra.content || `Hay una nueva respuesta en el ticket.`;
+            }
+
+            await sendNotification({
+                to: 'it@pushhr.cl', // Direct to IT channel
+                subject,
+                ticketId: ticket.id,
+                priority: ticket.priority,
+                creator: creatorLabel,
+                title: ticket.title,
+                content: content,
+                ticketUrl: `${window.location.origin}/`,
+                attachments: extra.attachments || []
+            });
+        } catch (e) {
+            console.error('Teams notification failed:', e);
+        }
+    };
+
     const addTicket = async (t) => {
         const { data, error } = await supabase.from('tickets').insert([t]).select();
         if (error) throw error;
-        // The real-time subscription will handle the UI update, 
-        // but returning the data is needed for navigation.
-
-        // Notify Admins about new ticket
-        console.log('🔍 addTicket: Buscando admins para notificar...', users.length, 'usuarios cargados');
-        try {
-            const admins = users.filter(u => u.role === 'admin');
-            const adminEmails = admins.map(a => a.email).filter(Boolean);
-            console.log('🔍 Admins encontrados:', adminEmails);
-            if (adminEmails.length > 0) {
-                await sendNotification({
-                    to: adminEmails,
-                    subject: `🎫 Nuevo Ticket creado: ${data[0].title}`,
-                    ticketId: data[0].id,
-                    priority: data[0].priority,
-                    creator: `${session.user.user_metadata?.full_name || session.user.email.split('@')[0]} (${session.user.email})`,
-                    title: data[0].title,
-                    content: `Se ha creado un nuevo ticket con prioridad **${data[0].priority}**.`,
-                    ticketUrl: "https://push-hr-tickets.netlify.app/"
-                });
-            }
-        } catch (e) { console.error('Email notify error:', e); }
-
+        // Navigation and feedback handled by caller
         return data[0];
     };
 
     const updateTicket = async (id, upd) => {
         const oldTicket = tickets.find(t => t.id === id);
+        if (!oldTicket) {
+            console.warn('updateTicket: Ticket not found', id);
+            return;
+        }
         // Optimistic update
         setTickets(prev => prev.map(t => t.id === id ? { ...t, ...upd } : t));
         const { error } = await supabase.from('tickets').update(upd).eq('id', id);
@@ -179,20 +195,11 @@ export function DataProvider({ children }) {
                 }]);
 
                 // Email notification to user if resolved
-                if (upd.status === 'Resuelto') {
-                    const user = users.find(u => u.id === oldTicket.creator_id);
-                    if (user?.email) {
-                        await sendNotification({
-                            to: user.email,
-                            subject: `✅ Ticket Resuelto: ${oldTicket.title}`,
-                            ticketId: id,
-                            priority: oldTicket.priority,
-                            creator: user.name + ` (${user.email})`,
-                            title: oldTicket.title,
-                            content: `El ticket ha sido marcado como **Resuelto** por el equipo técnico.`,
-                            ticketUrl: "https://push-hr-tickets.netlify.app/"
-                        });
-                    }
+                if (user?.email) {
+                    await notifyTeams('update', { ...oldTicket, status: 'Resuelto' }, {
+                        subject: `✅ Ticket Resuelto: ${oldTicket.title}`,
+                        content: `El ticket ha sido marcado como **Resuelto** por el equipo técnico.`
+                    });
                 }
             }
             if (upd.assigned_to && upd.assigned_to !== oldTicket.assigned_to) {
@@ -210,15 +217,9 @@ export function DataProvider({ children }) {
                 const user = users.find(u => u.id === oldTicket.creator_id);
                 console.log('🔍 Datos para email:', { tech: tech?.name, user: user?.email });
                 if (user?.email && tech) {
-                    await sendNotification({
-                        to: user.email,
+                    await notifyTeams('update', { ...oldTicket, status: upd.status, assigned_to: upd.assigned_to }, {
                         subject: `👨‍💻 Ticket Asignado`,
-                        ticketId: id,
-                        priority: oldTicket.priority,
-                        creator: user.name + ` (${user.email})`,
-                        title: oldTicket.title,
-                        content: `El técnico **${tech.name}** ha sido asignado a tu ticket y comenzará a trabajar en él pronto.`,
-                        ticketUrl: "https://push-hr-tickets.netlify.app/"
+                        content: `El técnico **${tech.name}** ha sido asignado a tu ticket y comenzará a trabajar en él pronto.`
                     });
                 }
             }
@@ -248,18 +249,6 @@ export function DataProvider({ children }) {
 
                         const targetUser = users.find(u => u.id === targetUid);
                         const senderUser = users.find(u => u.id === m.user_id);
-                        if (targetUser?.email) {
-                            await sendNotification({
-                                to: targetUser.email,
-                                subject: `💬 Nueva respuesta en ticket`,
-                                ticketId: m.ticket_id,
-                                priority: ticket.priority,
-                                creator: `${senderUser?.name} (${senderUser?.email})`,
-                                title: ticket.title,
-                                content: `**Mensaje:**\n"${m.content}"`,
-                                ticketUrl: "https://push-hr-tickets.netlify.app/"
-                            });
-                        }
                     }
                 }
             }
@@ -382,6 +371,29 @@ export function DataProvider({ children }) {
         return data[0];
     };
 
+    const notifyMessage = async (ticketId, msgContent, attachments = [], senderId) => {
+        try {
+            const ticket = tickets.find(t => t.id === ticketId);
+            if (!ticket) {
+                console.warn('Attempted to notify for non-existent ticket:', ticketId);
+                return;
+            }
+
+            const sender = users.find(u => u.id === senderId);
+            const targetUid = senderId === ticket.creator_id ? ticket.assigned_to : ticket.creator_id;
+            const targetUser = users.find(u => u.id === targetUid);
+
+            if (targetUser?.email) {
+                await notifyTeams('message', ticket, {
+                    content: `Nueva respuesta de **${sender?.name || 'Usuario'}**:\n\n${msgContent || (attachments.length ? 'Adjunto' : '')}`,
+                    attachments: attachments
+                });
+            }
+        } catch (e) {
+            console.error('Manual message notification failed:', e);
+        }
+    };
+
     const value = {
         tickets, users, cats, faqs, loading,
         addTicket, updateTicket, addMsg, addHistory,
@@ -389,6 +401,7 @@ export function DataProvider({ children }) {
         addFaq, updateFaq, deleteFaq,
         deleteTicket,
         uploadFile, addAttachment,
+        notifyTeams, notifyMessage, // Exposed new helpers
         refresh: fetchData
     };
 

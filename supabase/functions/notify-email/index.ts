@@ -53,6 +53,34 @@ serve(async (req: Request) => {
         // Prepare text content
         const textContent = content || html?.replace(/<[^>]*>?/gm, '') || 'Sin detalles adicionales';
 
+        // Prepare attachments section
+        const attachmentItems: any[] = [];
+        if (payload.attachments && Array.isArray(payload.attachments)) {
+            payload.attachments.forEach((att: any) => {
+                if (att.type?.startsWith('image/') || att.url?.match(/\.(jpeg|jpg|gif|png)$/i)) {
+                    attachmentItems.push({
+                        "type": "Image",
+                        "url": att.url,
+                        "size": "Large",
+                        "altText": "Adjunto",
+                        "spacing": "Medium"
+                    });
+                } else {
+                    attachmentItems.push({
+                        "type": "TextBlock",
+                        "text": `📎 [Descargar: ${att.name || 'Archivo'}](${att.url})`,
+                        "wrap": true,
+                        "spacing": "Small"
+                    });
+                }
+            });
+        }
+
+        // Action URLs with deep linking for auto-actions
+        const baseUrl = ticketUrl || "https://push-hr-tickets.netlify.app/";
+        const assignUrl = `${baseUrl}${baseUrl.includes('?') ? '&' : '?'}action=assign&id=${ticketId}`;
+        const resolveUrl = `${baseUrl}${baseUrl.includes('?') ? '&' : '?'}action=resolve&id=${ticketId}`;
+
         // Premium AdaptiveCard format
         const teamsMessage = {
             "type": "message",
@@ -119,14 +147,26 @@ serve(async (req: Request) => {
                                 "text": `**Mensaje:**\n\n${textContent}`,
                                 "wrap": true,
                                 "spacing": "Large"
-                            }
+                            },
+                            ...attachmentItems
                         ],
                         "actions": [
                             {
                                 "type": "Action.OpenUrl",
-                                "title": "Ver Detalle en el Panel",
-                                "url": ticketUrl || "https://push-hr-tickets.netlify.app/",
+                                "title": "Ver Detalle",
+                                "url": baseUrl,
+                                "style": "default"
+                            },
+                            {
+                                "type": "Action.OpenUrl",
+                                "title": "⚡ Tomar Ticket",
+                                "url": assignUrl,
                                 "style": "positive"
+                            },
+                            {
+                                "type": "Action.OpenUrl",
+                                "title": "✅ Resolver",
+                                "url": resolveUrl
                             }
                         ],
                         "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",

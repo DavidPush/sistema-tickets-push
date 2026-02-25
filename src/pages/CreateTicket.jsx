@@ -36,8 +36,10 @@ export function CreateTicket({ onNavigate }) {
                 updated_at: new Date().toISOString()
             });
 
+            let attachment = null;
             if (file) {
                 const { url, name, type, size } = await uploadFile(file);
+                attachment = { url, name, type, size };
                 await addAttachment({
                     ticket_id: ticket.id,
                     file_name: name,
@@ -47,6 +49,12 @@ export function CreateTicket({ onNavigate }) {
                     created_by: session.user.id
                 });
             }
+
+            // Centralized notification with attachments
+            const { notifyTeams } = useData(); // Destructured from context
+            await notifyTeams('new', ticket, {
+                attachments: attachment ? [attachment] : []
+            });
 
             toast('Ticket creado exitosamente');
             onNavigate('tickets');

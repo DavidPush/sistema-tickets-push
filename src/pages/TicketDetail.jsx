@@ -13,7 +13,7 @@ import { HistorySection } from '../components/Ticket/HistorySection';
 
 export function TicketDetail({ id, onNavigate }) {
     const { session } = useAuth();
-    const { tickets, users, cats, updateTicket, addMsg, addHistory, uploadFile, addAttachment, deleteTicket } = useData();
+    const { tickets, users, cats, updateTicket, addMsg, addHistory, uploadFile, addAttachment, deleteTicket, notifyMessage } = useData();
     const toast = useToast();
 
     const [messages, setMessages] = useState([]);
@@ -48,6 +48,14 @@ export function TicketDetail({ id, onNavigate }) {
 
     if (!t) return <div className="p-8 text-center color-999">Cargando ticket...</div>;
     if (!canSee) return <div className="p-8 text-center color-999">No tienes permiso para ver este ticket.</div>;
+
+    useEffect(() => {
+        // Safeguard: If ticket disappears from global state while on this page, navigate back
+        if (!loadingData && id && !t) {
+            console.log('Ticket disappearing from state, navigating back...');
+            onNavigate('tickets');
+        }
+    }, [t, loadingData, id, onNavigate]);
 
     useEffect(() => {
         if (!id) return;
@@ -202,6 +210,11 @@ export function TicketDetail({ id, onNavigate }) {
 
             setIsPrivate(false);
             setMessages(prev => prev.map(m => m.id === tempId ? { ...realMsg, attachments: attachmentData ? [attachmentData] : [] } : m));
+
+            // Notify Teams manually now that attachments are ready
+            if (!isPrivate) {
+                await notifyMessage(id, currentMsg, attachmentData ? [attachmentData] : [], session.user.id);
+            }
         } catch (e) {
             setMessages(prev => prev.filter(m => m.id !== tempId));
             toast(e.message, 'error');
