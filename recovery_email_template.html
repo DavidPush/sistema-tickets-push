@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7fa;
+            margin: 0;
+            padding: 0;
+            color: #1e293b;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        }
+
+        .header {
+            background-color: #ffffff;
+            padding: 40px 20px;
+            text-align: center;
+            border-bottom: 1px solid #f1f5f9;
+            border-top: 6px solid #5A3FA3;
+        }
+
+        .logo {
+            max-width: 180px;
+            height: auto;
+        }
+
+        .content {
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #1e293b;
+            font-size: 24px;
+            margin-bottom: 16px;
+        }
+
+        p {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #475569;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: #5A3FA3;
+            color: #ffffff !important;
+            padding: 14px 32px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            transition: background 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #483182;
+        }
+
+        .footer {
+            background-color: #f8fafc;
+            padding: 24px;
+            text-align: center;
+            font-size: 13px;
+            color: #94a3b8;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .highlight {
+            color: #5A3FA3;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <!-- Usamos el logo público de la app si está disponible, o un placeholder estilizado -->
+            <img src="https://glzhkzmbcnizaamqtdin.supabase.co/storage/v1/object/public/tickets/logo_public.png"
+                alt="Push HR Logo" class="logo">
+        </div>
+        <div class="content">
+            <h1>Restablecer Contraseña</h1>
+            <p>Hola,</p>
+            <p>Hemos recibido una solicitud para restablecer la contraseña de tu cuenta en el <strong>Sistema de Tickets
+                    de Push HR</strong>. Haz clic en el botón de abajo para continuar:</p>
+
+            <a href="{{ .ConfirmationURL }}" class="btn">Restablecer mi Contraseña</a>
+
+            <p style="margin-top: 30px; font-size: 14px;">Si no solicitaste este cambio, puedes ignorar este correo de
+                forma segura. Tu contraseña seguirá siendo la misma.</p>
+        </div>
+        <div class="footer">
+            &copy; 2024 Push HR Spa. Todos los derechos reservados.<br>
+            Este es un correo automático, por favor no respondas a este mensaje.
+        </div>
+    </div>
+</body>
+
+</html>
