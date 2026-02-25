@@ -29,9 +29,12 @@ export function AuthProvider({ children }) {
         await supabase.auth.signOut();
     };
 
+    const SITE_URL = 'https://push-hr-tickets.netlify.app/';
+
     const requestPasswordReset = async (email) => {
+        const isLocal = window.location.hostname === 'localhost';
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: `${window.location.origin}`
+            redirectTo: isLocal ? window.location.origin : SITE_URL
         });
         if (error) throw error;
     };
