@@ -20,23 +20,13 @@ import { Categories } from './pages/Categories';
 import { KnowledgeBase } from './pages/KnowledgeBase';
 
 function AppContent() {
-    const { session, loadingAuth, logout } = useAuth();
+    const { session, loadingAuth, logout, isRecovering } = useAuth();
     const { users, tickets, loading: loadingData } = useData();
     const [page, setPage] = useState('dashboard');
     const [selTicket, setSelTicket] = useState(null);
     const [showMobile, setShowMobile] = useState(false);
-    const [isRecovering, setIsRecovering] = useState(false);
 
     const profile = users.find(u => u.id === session?.user?.id);
-
-    useEffect(() => {
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-            if (event === 'PASSWORD_RECOVERY') {
-                setIsRecovering(true);
-            }
-        });
-        return () => subscription.unsubscribe();
-    }, []);
 
     useEffect(() => {
         if (session?.user && !profile && !loadingData) {
@@ -76,7 +66,9 @@ function AppContent() {
         </div>
     );
 
-    if (isRecovering) return <ResetPasswordPage onComplete={() => setIsRecovering(false)} />;
+    const { clearRecoveryState } = useAuth(); // Local import to match logic
+
+    if (isRecovering) return <ResetPasswordPage onComplete={clearRecoveryState} />;
     if (!session) return <LoginPage />;
 
     if (!profile) return (
