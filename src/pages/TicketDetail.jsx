@@ -13,7 +13,7 @@ import { HistorySection } from '../components/Ticket/HistorySection';
 
 export function TicketDetail({ id, onNavigate }) {
     const { session } = useAuth();
-    const { tickets, users, cats, updateTicket, addMsg, addHistory, uploadFile, addAttachment, deleteTicket, notifyMessage } = useData();
+    const { tickets, users, cats, updateTicket, addMsg, addHistory, uploadFile, addAttachment, deleteTicket, notifyMessage, loading: loadingData } = useData();
     const toast = useToast();
 
     const [messages, setMessages] = useState([]);
