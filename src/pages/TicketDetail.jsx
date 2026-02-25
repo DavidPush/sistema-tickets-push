@@ -26,7 +26,7 @@ export function TicketDetail({ id, onNavigate }) {
     const chatEnd = useRef(null);
     const fileInputRef = useRef(null);
 
-    const t = tickets.find(x => x.id === id);
+    const t = tickets.find(x => Number(x.id) === Number(id));
     const creator = users.find(u => u.id === t?.creator_id);
     const assigned = users.find(u => u.id === t?.assigned_to);
     const cat = cats.find(c => c.id === t?.category_id);
@@ -46,9 +46,6 @@ export function TicketDetail({ id, onNavigate }) {
         }
     };
 
-    if (!t) return <div className="p-8 text-center color-999">Cargando ticket...</div>;
-    if (!canSee) return <div className="p-8 text-center color-999">No tienes permiso para ver este ticket.</div>;
-
     useEffect(() => {
         // Safeguard: If ticket disappears from global state while on this page, navigate back
         if (!loadingData && id && !t) {
@@ -58,7 +55,7 @@ export function TicketDetail({ id, onNavigate }) {
     }, [t, loadingData, id, onNavigate]);
 
     useEffect(() => {
-        if (!id) return;
+        if (!id || !t) return;
         const fetchAux = async () => {
             const query = supabase.from('messages').select('*').eq('ticket_id', id);
 
@@ -141,7 +138,7 @@ export function TicketDetail({ id, onNavigate }) {
                 schema: 'public',
                 table: 'tickets'
             }, payload => {
-                if (payload.old?.id === id) {
+                if (Number(payload.old?.id) === Number(id)) {
                     toast('Este ticket ha sido eliminado por otro usuario');
                     onNavigate('tickets');
                 }

@@ -20,15 +20,14 @@ import { Categories } from './pages/Categories';
 import { KnowledgeBase } from './pages/KnowledgeBase';
 
 function AppContent() {
-    const { session, loadingAuth, logout, isRecovering } = useAuth();
-    const { users, tickets, loading: loadingData } = useData();
+    const { session, loadingAuth, logout, isRecovering, clearRecoveryState } = useAuth();
+    const { users, tickets, loading: loadingData, updateTicket } = useData();
     const [page, setPage] = useState('dashboard');
     const [selTicket, setSelTicket] = useState(null);
     const [showMobile, setShowMobile] = useState(false);
 
     const profile = users.find(u => u.id === session?.user?.id);
 
-    const { updateTicket } = useData();
     const toast = useToast();
 
     useEffect(() => {
@@ -99,7 +98,6 @@ function AppContent() {
         </div>
     );
 
-    const { clearRecoveryState } = useAuth(); // Local import to match logic
 
     if (isRecovering) return <ResetPasswordPage onComplete={clearRecoveryState} />;
     if (!session) return <LoginPage />;
@@ -134,7 +132,12 @@ function AppContent() {
                 setPage(p);
             }} />;
             case 'tickets': return <Tickets onSelect={id => { setSelTicket(id); setPage('detail'); }} />;
-            case 'create': return isUser ? <CreateTicket onNavigate={setPage} /> : <Dashboard onNavigate={setPage} />;
+            case 'create': return isUser ? (
+                <CreateTicket onNavigate={(p, id) => {
+                    if (id) setSelTicket(id);
+                    setPage(p);
+                }} />
+            ) : <Dashboard onNavigate={setPage} />;
             case 'detail': return <TicketDetail id={selTicket} onNavigate={setPage} />;
             case 'users': return isAdmin ? <Users /> : <Dashboard onNavigate={setPage} />;
             case 'categories': return isAdmin ? <Categories /> : <Dashboard onNavigate={setPage} />;

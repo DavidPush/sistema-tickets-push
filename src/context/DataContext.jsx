@@ -195,7 +195,8 @@ export function DataProvider({ children }) {
                 }]);
 
                 // Email notification to user if resolved
-                if (user?.email) {
+                const creatorUser = users.find(u => u.id === oldTicket.creator_id);
+                if (creatorUser?.email) {
                     await notifyTeams('update', { ...oldTicket, status: 'Resuelto' }, {
                         subject: `✅ Ticket Resuelto: ${oldTicket.title}`,
                         content: `El ticket ha sido marcado como **Resuelto** por el equipo técnico.`

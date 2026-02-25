@@ -6,7 +6,7 @@ import { IC } from '../assets/icons';
 
 export function CreateTicket({ onNavigate }) {
     const { session } = useAuth();
-    const { cats, addTicket, addHistory, uploadFile, addAttachment } = useData();
+    const { cats, addTicket, addHistory, uploadFile, addAttachment, notifyTeams } = useData();
     const toast = useToast();
 
     const [form, setForm] = useState({ title: '', description: '', categoryId: '', priority: 'medium' });
@@ -50,14 +50,12 @@ export function CreateTicket({ onNavigate }) {
                 });
             }
 
-            // Centralized notification with attachments
-            const { notifyTeams } = useData(); // Destructured from context
             await notifyTeams('new', ticket, {
                 attachments: attachment ? [attachment] : []
             });
 
             toast('Ticket creado exitosamente');
-            onNavigate('tickets');
+            onNavigate('detail', ticket.id);
         } catch (e) {
             toast('Error al crear ticket: ' + e.message, 'error');
         } finally {
