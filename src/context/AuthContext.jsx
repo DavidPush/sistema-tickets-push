@@ -24,8 +24,20 @@ export function AuthProvider({ children }) {
         await supabase.auth.signOut();
     };
 
+    const requestPasswordReset = async (email) => {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: `${window.location.origin}`
+        });
+        if (error) throw error;
+    };
+
+    const updatePassword = async (newPassword) => {
+        const { error } = await supabase.auth.updateUser({ password: newPassword });
+        if (error) throw error;
+    };
+
     return (
-        <AuthCtx.Provider value={{ session, loadingAuth, logout }}>
+        <AuthCtx.Provider value={{ session, loadingAuth, logout, requestPasswordReset, updatePassword }}>
             {children}
         </AuthCtx.Provider>
     );

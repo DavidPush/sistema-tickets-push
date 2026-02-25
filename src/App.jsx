@@ -6,6 +6,7 @@ import { NotificationProvider } from './context/NotificationContext';
 import { Sidebar } from './components/Sidebar';
 import { Topbar } from './components/Topbar';
 import { LoginPage } from './pages/LoginPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { IC } from './assets/icons';
 import { supabase } from './services/supabase';
 
@@ -24,15 +25,23 @@ function AppContent() {
     const [page, setPage] = useState('dashboard');
     const [selTicket, setSelTicket] = useState(null);
     const [showMobile, setShowMobile] = useState(false);
+    const [isRecovering, setIsRecovering] = useState(false);
 
     const profile = users.find(u => u.id === session?.user?.id);
 
     useEffect(() => {
-        // Auto-create profile if missing and authenticated
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+            if (event === 'PASSWORD_RECOVERY') {
+                setIsRecovering(true);
+            }
+        });
+        return () => subscription.unsubscribe();
+    }, []);
+
+    useEffect(() => {
         if (session?.user && !profile && !loadingData) {
             const checkAndCreate = async () => {
                 try {
-                    // Direct DB check to avoid race conditions with local state
                     const { data, error } = await supabase
                         .from('profiles')
                         .select('id')
@@ -66,9 +75,10 @@ function AppContent() {
             <span className="spinner" style={{ width: 40, height: 40, borderColor: 'var(--purple)', borderTopColor: 'transparent' }} />
         </div>
     );
+
+    if (isRecovering) return <ResetPasswordPage onComplete={() => setIsRecovering(false)} />;
     if (!session) return <LoginPage />;
 
-    // Minimal loading while profile is being auto-created
     if (!profile) return (
         <div className="login-bg">
             <div className="text-center" style={{ color: 'white' }}>
