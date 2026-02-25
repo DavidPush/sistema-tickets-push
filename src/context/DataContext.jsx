@@ -149,7 +149,7 @@ export function DataProvider({ children }) {
                     creator: `${session.user.user_metadata?.full_name || session.user.email.split('@')[0]} (${session.user.email})`,
                     title: data[0].title,
                     content: `Se ha creado un nuevo ticket con prioridad **${data[0].priority}**.`,
-                    ticketUrl: `${window.location.origin}`
+                    ticketUrl: "https://push-hr-tickets.netlify.app/"
                 });
             }
         } catch (e) { console.error('Email notify error:', e); }
@@ -190,7 +190,7 @@ export function DataProvider({ children }) {
                             creator: user.name + ` (${user.email})`,
                             title: oldTicket.title,
                             content: `El ticket ha sido marcado como **Resuelto** por el equipo técnico.`,
-                            ticketUrl: `${window.location.origin}`
+                            ticketUrl: "https://push-hr-tickets.netlify.app/"
                         });
                     }
                 }
@@ -218,7 +218,7 @@ export function DataProvider({ children }) {
                         creator: user.name + ` (${user.email})`,
                         title: oldTicket.title,
                         content: `El técnico **${tech.name}** ha sido asignado a tu ticket y comenzará a trabajar en él pronto.`,
-                        ticketUrl: `${window.location.origin}`
+                        ticketUrl: "https://push-hr-tickets.netlify.app/"
                     });
                 }
             }
@@ -257,7 +257,7 @@ export function DataProvider({ children }) {
                                 creator: `${senderUser?.name} (${senderUser?.email})`,
                                 title: ticket.title,
                                 content: `**Mensaje:**\n"${m.content}"`,
-                                ticketUrl: `${window.location.origin}`
+                                ticketUrl: "https://push-hr-tickets.netlify.app/"
                             });
                         }
                     }
