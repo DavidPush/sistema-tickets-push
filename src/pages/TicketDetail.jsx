@@ -143,6 +143,18 @@ export function TicketDetail({ id, onNavigate }) {
                     onNavigate('tickets');
                 }
             })
+            .on('postgres_changes', {
+                event: 'UPDATE',
+                schema: 'public',
+                table: 'tickets'
+            }, payload => {
+                if (Number(payload.new?.id) === Number(id)) {
+                    if (payload.new.status === 'closed') {
+                        toast('Este ticket acaba de ser resuelto por otro usuario');
+                        onNavigate('tickets');
+                    }
+                }
+            })
             .subscribe((status) => {
                 if (status === 'SUBSCRIBED') {
                     console.log('Realtime subscribed for ticket:', id);
@@ -208,10 +220,7 @@ export function TicketDetail({ id, onNavigate }) {
             setIsPrivate(false);
             setMessages(prev => prev.map(m => m.id === tempId ? { ...realMsg, attachments: attachmentData ? [attachmentData] : [] } : m));
 
-            // Notify Teams manually now that attachments are ready
-            if (!isPrivate) {
-                await notifyMessage(id, currentMsg, attachmentData ? [attachmentData] : [], session.user.id);
-            }
+            // Note: notifyMessage call removed to keep Teams channel for Lifecycle events only (New, Assigned, Resolved).
         } catch (e) {
             setMessages(prev => prev.filter(m => m.id !== tempId));
             toast(e.message, 'error');
@@ -224,7 +233,13 @@ export function TicketDetail({ id, onNavigate }) {
         try {
             await updateTicket(id, upd);
             if (action) await addHistory({ ticket_id: id, user_id: session.user.id, action });
-            if (!silent) toast('Ticket actualizado');
+
+            if (upd.status === 'closed') {
+                toast('Ticket resuelto y movido al historial');
+                onNavigate('tickets');
+            } else if (!silent) {
+                toast('Ticket actualizado');
+            }
         } catch (e) {
             toast(e.message, 'error');
         }

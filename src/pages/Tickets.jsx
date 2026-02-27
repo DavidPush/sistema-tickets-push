@@ -12,7 +12,7 @@ export function Tickets({ onSelect }) {
     const [dq, setDq] = useState(''); // Debounced query
     const [fStatus, setFStatus] = useState('all');
     const [fPrio, setFPrio] = useState('all');
-    const [showClosed, setShowClosed] = useState(true);
+    const [viewMode, setViewMode] = useState('active'); // 'active' or 'archived'
 
     const profile = users.find(u => u.id === session?.user?.id);
     const isAdminOrTech = profile?.role === 'admin' || profile?.role === 'technician';
@@ -28,17 +28,35 @@ export function Tickets({ onSelect }) {
             const canSee = isAdminOrTech || isOwner;
             if (!canSee) return false;
 
-            if (!showClosed && t.status === 'closed') return false;
+            if (viewMode === 'active' && t.status === 'closed') return false;
+            if (viewMode === 'archived' && t.status !== 'closed') return false;
 
             const matchQ = t.title.toLowerCase().includes(dq.toLowerCase()) || t.id.toString().includes(dq);
             const matchS = fStatus === 'all' || t.status === fStatus;
             const matchP = fPrio === 'all' || t.priority === fPrio;
             return matchQ && matchS && matchP;
         });
-    }, [tickets, dq, fStatus, fPrio, isAdminOrTech, session?.user?.id, showClosed]);
+    }, [tickets, dq, fStatus, fPrio, isAdminOrTech, session?.user?.id, viewMode]);
 
     return (
         <div className="fade-in">
+            <div className="tabs mb-4" style={{ padding: '0 4px', borderBottom: '1px solid #e2e8f0', display: 'flex', gap: '8px' }}>
+                <button
+                    className={`tab-btn ${viewMode === 'active' ? 'active' : ''}`}
+                    onClick={() => setViewMode('active')}
+                    style={{ fontSize: 16, fontWeight: 600, padding: '12px 24px' }}
+                >
+                    {IC.ticket} Tickets Activos
+                </button>
+                <button
+                    className={`tab-btn ${viewMode === 'archived' ? 'active' : ''}`}
+                    onClick={() => setViewMode('archived')}
+                    style={{ fontSize: 16, fontWeight: 600, padding: '12px 24px' }}
+                >
+                    {IC.check} Tickets Resueltos
+                </button>
+            </div>
+
             <div className="card card-pad mb-6">
                 <div className="filter-bar">
                     <div className="input-icon-wrap">
@@ -50,16 +68,17 @@ export function Tickets({ onSelect }) {
                             onChange={e => setQ(e.target.value)}
                         />
                     </div>
-                    <div>
-                        <label className="form-label">Estado</label>
-                        <select className="form-input form-select" value={fStatus} onChange={e => setFStatus(e.target.value)}>
-                            <option value="all">Todos los estados</option>
-                            <option value="open">Abiertos</option>
-                            <option value="in_progress">En Progreso</option>
-                            <option value="waiting">Esperando</option>
-                            <option value="closed">Cerrados</option>
-                        </select>
-                    </div>
+                    {viewMode === 'active' && (
+                        <div>
+                            <label className="form-label">Estado</label>
+                            <select className="form-input form-select" value={fStatus} onChange={e => setFStatus(e.target.value)}>
+                                <option value="all">Todos (Activos)</option>
+                                <option value="open">Abiertos</option>
+                                <option value="in_progress">En Progreso</option>
+                                <option value="waiting">Esperando</option>
+                            </select>
+                        </div>
+                    )}
                     <div>
                         <label className="form-label">Prioridad</label>
                         <select className="form-input form-select" value={fPrio} onChange={e => setFPrio(e.target.value)}>
@@ -69,16 +88,6 @@ export function Tickets({ onSelect }) {
                             <option value="high">Alta</option>
                             <option value="critical">Crítica</option>
                         </select>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'flex-end', paddingBottom: 8 }}>
-                        <label className="flex-center gap-2" style={{ cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
-                            <input
-                                type="checkbox"
-                                checked={showClosed}
-                                onChange={e => setShowClosed(e.target.checked)}
-                            />
-                            Mostrar Cerrados
-                        </label>
                     </div>
                 </div>
             </div>

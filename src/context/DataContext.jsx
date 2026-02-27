@@ -137,7 +137,7 @@ export function DataProvider({ children }) {
 
             if (type === 'new') {
                 subject = `🎫 Nuevo Ticket creado: ${ticket.title}`;
-                content = `Se ha creado un nuevo ticket con prioridad **${ticket.priority}**.`;
+                content = `**${creatorLabel}** ha creado un nuevo ticket con prioridad **${ticket.priority.toUpperCase()}**.`;
             } else if (type === 'update') {
                 subject = extra.subject || `🔄 Ticket Actualizado: ${ticket.title}`;
                 content = extra.content || `El estado del ticket ha cambiado a: **${ticket.status}**.`;
@@ -146,8 +146,8 @@ export function DataProvider({ children }) {
                 content = extra.content || `Hay una nueva respuesta en el ticket.`;
             }
 
-            await sendNotification({
-                to: 'it@pushhr.cl', // Direct to IT channel
+            const payload = {
+                to: 'it@pushhr.cl',
                 subject,
                 ticketId: ticket.id,
                 priority: ticket.priority,
@@ -155,8 +155,11 @@ export function DataProvider({ children }) {
                 title: ticket.title,
                 content: content,
                 ticketUrl: `${window.location.origin}/`,
-                attachments: extra.attachments || []
-            });
+                attachments: extra.attachments || [],
+                excludeActions: extra.excludeActions || []
+            };
+
+            await sendNotification(payload);
         } catch (e) {
             console.error('Teams notification failed:', e);
         }
@@ -194,12 +197,15 @@ export function DataProvider({ children }) {
                     ticket_id: id
                 }]);
 
-                // Email notification to user if resolved
-                const creatorUser = users.find(u => u.id === oldTicket.creator_id);
-                if (creatorUser?.email) {
+                // Notification to Teams channel if resolved (technical key is 'closed')
+                if (upd.status === 'closed') {
+                    const resolver = users.find(u => u.id === session?.user?.id);
+                    const resolverName = resolver?.name || 'Un técnico';
+
                     await notifyTeams('update', { ...oldTicket, status: 'Resuelto' }, {
-                        subject: `✅ Ticket Resuelto: ${oldTicket.title}`,
-                        content: `El ticket ha sido marcado como **Resuelto** por el equipo técnico.`
+                        subject: `✅ Ticket Resuelto`,
+                        content: `El ticket **TK-${id.toString().padStart(4, '0')}** ha sido marcado como **Resuelto** por **${resolverName}**.`,
+                        excludeActions: ['assign', 'resolve']
                     });
                 }
             }
@@ -213,14 +219,14 @@ export function DataProvider({ children }) {
                     ticket_id: id
                 }]);
 
-                // Email notification for assignment
+                // General notification for assignment
                 const tech = users.find(u => u.id === upd.assigned_to);
                 const user = users.find(u => u.id === oldTicket.creator_id);
-                console.log('🔍 Datos para email:', { tech: tech?.name, user: user?.email });
                 if (user?.email && tech) {
                     await notifyTeams('update', { ...oldTicket, status: upd.status, assigned_to: upd.assigned_to }, {
                         subject: `👨‍💻 Ticket Asignado`,
-                        content: `El técnico **${tech.name}** ha sido asignado a tu ticket y comenzará a trabajar en él pronto.`
+                        content: `El técnico **${tech.name}** ha sido asignado al ticket **TK-${id.toString().padStart(4, '0')}**.`,
+                        excludeActions: ['assign']
                     });
                 }
             }
@@ -384,11 +390,11 @@ export function DataProvider({ children }) {
             const targetUid = senderId === ticket.creator_id ? ticket.assigned_to : ticket.creator_id;
             const targetUser = users.find(u => u.id === targetUid);
 
+            // We only send internal notification (bell) for messages to reduce Teams noise.
+            // Teams is kept for Lifecycle events (New, Assigned, Resolved).
             if (targetUser?.email) {
-                await notifyTeams('message', ticket, {
-                    content: `Nueva respuesta de **${sender?.name || 'Usuario'}**:\n\n${msgContent || (attachments.length ? 'Adjunto' : '')}`,
-                    attachments: attachments
-                });
+                // The logical bell notification is handled by the subscription or manually in TicketDetail if needed.
+                // We previously called notifyTeams here, now we exclude it for a cleaner IT channel.
             }
         } catch (e) {
             console.error('Manual message notification failed:', e);

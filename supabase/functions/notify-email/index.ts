@@ -16,7 +16,7 @@ serve(async (req: Request) => {
     try {
         const payload = await req.json()
         console.log('Incoming Payload:', JSON.stringify(payload))
-        const { to, subject, html, content, ticketId, priority, creator, title, ticketUrl } = payload
+        const { to, subject, html, content, ticketId, priority, creator, title, ticketUrl, excludeActions = [] } = payload
 
         console.log(`Sending Polished Teams Notification: ${subject}`)
 
@@ -28,8 +28,9 @@ serve(async (req: Request) => {
         let accentColor = "default"
         let priorityIcon = "https://img.icons8.com/fluency/48/info.png"
         const p = priority?.toLowerCase() || 'medium'
+        console.log(`Priority detected: ${p}`)
 
-        if (p === 'hugh' || p === 'high' || p === 'critical') {
+        if (p === 'high' || p === 'critical') {
             accentColor = "attention"
             priorityIcon = "https://img.icons8.com/fluency/48/high-priority.png"
         } else if (p === 'medium') {
@@ -84,11 +85,14 @@ serve(async (req: Request) => {
         // Premium AdaptiveCard format
         const teamsMessage = {
             "type": "message",
+            "summary": subject || "Nueva actualización de ticket",
             "attachments": [
                 {
                     "contentType": "application/vnd.microsoft.card.adaptive",
                     "content": {
                         "type": "AdaptiveCard",
+                        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                        "version": "1.4",
                         "body": [
                             {
                                 "type": "ColumnSet",
@@ -135,7 +139,7 @@ serve(async (req: Request) => {
                                     {
                                         "type": "FactSet",
                                         "facts": [
-                                            { "title": "👤 Creado por:", "value": payload.creator || "N/A" },
+                                            { "title": "👤 Creado por:", "value": creator || "N/A" },
                                             { "title": "🚨 Prioridad:", "value": p.toUpperCase() },
                                             { "title": "🆔 ID Ticket:", "value": ticketId ? `TK-${ticketId.toString().padStart(4, '0')}` : "N/A" }
                                         ]
@@ -150,27 +154,33 @@ serve(async (req: Request) => {
                             },
                             ...attachmentItems
                         ],
-                        "actions": [
-                            {
-                                "type": "Action.OpenUrl",
-                                "title": "Ver Detalle",
-                                "url": baseUrl,
-                                "style": "default"
-                            },
-                            {
-                                "type": "Action.OpenUrl",
-                                "title": "⚡ Tomar Ticket",
-                                "url": assignUrl,
-                                "style": "positive"
-                            },
-                            {
-                                "type": "Action.OpenUrl",
-                                "title": "✅ Resolver",
-                                "url": resolveUrl
+                        "actions": (() => {
+                            const validExclude = Array.isArray(excludeActions) ? excludeActions : [];
+                            const actions: any[] = [
+                                {
+                                    "type": "Action.OpenUrl",
+                                    "title": "Ver Detalle",
+                                    "url": baseUrl,
+                                    "style": "default"
+                                }
+                            ];
+                            if (!validExclude.includes('assign')) {
+                                actions.push({
+                                    "type": "Action.OpenUrl",
+                                    "title": "⚡ Tomar Ticket",
+                                    "url": assignUrl,
+                                    "style": "positive"
+                                });
                             }
-                        ],
-                        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-                        "version": "1.4"
+                            if (!validExclude.includes('resolve')) {
+                                actions.push({
+                                    "type": "Action.OpenUrl",
+                                    "title": "✅ Resolver",
+                                    "url": resolveUrl
+                                });
+                            }
+                            return actions;
+                        })()
                     }
                 }
             ]
