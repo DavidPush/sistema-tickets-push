@@ -276,20 +276,44 @@ export function DataProvider({ children }) {
     };
 
     const updateUser = async (id, upd) => {
-        setUsers(prev => prev.map(u => u.id === id ? { ...u, ...upd } : u));
-        const { error } = await supabase.from('profiles').update(upd).eq('id', id);
-        if (error) {
-            fetchData();
-            throw error;
+        try {
+            console.log(`[updateUser] Attempting to update user ${id} with:`, upd);
+            setUsers(prev => prev.map(u => u.id === id ? { ...u, ...upd } : u));
+
+            const { data, error } = await supabase.functions.invoke('admin-users', {
+                body: { action: 'update_profile', targetUserId: id, updates: upd }
+            });
+
+            if (error || !data?.success) {
+                console.error('[updateUser] Edge Function error:', error || data?.error);
+                fetchData();
+                throw new Error(error?.message || data?.error || 'Falló la actualización');
+            }
+            console.log('[updateUser] Success:', data);
+        } catch (err) {
+            console.error('[updateUser] Caught error:', err);
+            throw err;
         }
     };
 
     const deleteUser = async (id) => {
-        setUsers(prev => prev.filter(u => u.id !== id));
-        const { error } = await supabase.from('profiles').delete().eq('id', id);
-        if (error) {
-            fetchData();
-            throw error;
+        try {
+            console.log(`[deleteUser] Attempting to delete user ${id}`);
+            setUsers(prev => prev.filter(u => u.id !== id));
+
+            const { data, error } = await supabase.functions.invoke('admin-users', {
+                body: { action: 'delete_user', targetUserId: id }
+            });
+
+            if (error || !data?.success) {
+                console.error('[deleteUser] Edge Function error:', error || data?.error);
+                fetchData();
+                throw new Error(error?.message || data?.error || 'Falló la eliminación');
+            }
+            console.log('[deleteUser] Success:', data);
+        } catch (err) {
+            console.error('[deleteUser] Caught error:', err);
+            throw err;
         }
     };
 
